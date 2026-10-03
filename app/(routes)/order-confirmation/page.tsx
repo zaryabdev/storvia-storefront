@@ -39,7 +39,7 @@ const OrderConfirmationPage = () => {
                     <div className="px-4 py-16 sm:px-6 lg:px-8" role="status" aria-live="polite">
                         <span className="sr-only">Loading…</span>
                         <Skeleton className="h-9 w-56" />
-                        <Skeleton className="mx-auto mt-8 h-72 w-full max-w-2xl rounded-2xl" />
+                        <Skeleton className="mx-auto mt-8 h-72 w-full max-w-2xl rounded-surface" />
                     </div>
                 </Container>
             </div>

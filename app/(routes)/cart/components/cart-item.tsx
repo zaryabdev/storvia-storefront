@@ -114,9 +114,13 @@ const CartItem: React.FC<CartItemProps> = ({ data, quantity }) => {
                     <div aria-live="polite" className="flex flex-col items-end">
                         <Currency value={Number(data.price) * quantity} noDecimals />
                         {quantity > 1 && (
-                            <div className="flex items-center gap-1 text-meta text-muted-foreground [&_div]:font-normal [&_div]:text-muted-foreground">
+                            <div className="flex items-center gap-1 text-meta text-muted-foreground">
                                 <span>{quantity} ×</span>
-                                <Currency value={data.price} noDecimals />
+                                <Currency
+                                    value={data.price}
+                                    noDecimals
+                                    className="font-normal text-muted-foreground"
+                                />
                             </div>
                         )}
                     </div>

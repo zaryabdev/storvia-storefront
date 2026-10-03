@@ -124,11 +124,12 @@ const CheckoutPage = () => {
                         <Skeleton className="h-9 w-40" />
                         <div className="mt-10 lg:grid lg:grid-cols-12 lg:gap-x-8">
                             <div className="space-y-6 lg:col-span-7">
-                                <Skeleton className="h-40 w-full rounded-xl" />
-                                <Skeleton className="h-40 w-full rounded-xl" />
+                                <Skeleton className="h-40 w-full rounded-surface" />
+                                <Skeleton className="h-40 w-full rounded-surface" />
                             </div>
-                            <div className="mt-8 lg:col-span-5 lg:mt-0">
-                                <Skeleton className="h-48 w-full rounded-xl" />
+                            <div className="mt-8 space-y-6 lg:col-span-5 lg:mt-0">
+                                <Skeleton className="h-48 w-full rounded-surface" />
+                                <Skeleton className="h-28 w-full rounded-surface" />
                             </div>
                         </div>
                     </div>
@@ -240,9 +241,9 @@ const CheckoutPage = () => {
 
                             {/* Payment Method — read-only/selected state. COD is the
                                 only method; this never implies other options exist. */}
-                            <div className="rounded-surface border border-border bg-surface p-6">
+                            <div className="rounded-surface border border-border bg-surface-muted p-6">
                                 <h2 className="text-subheading text-foreground">Payment Method</h2>
-                                <div className="mt-4 flex items-center gap-3 rounded-control border border-primary bg-surface-muted px-4 py-3">
+                                <div className="mt-4 flex items-center gap-3 rounded-control border border-primary bg-surface px-4 py-3">
                                     <span
                                         aria-hidden="true"
                                         className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"

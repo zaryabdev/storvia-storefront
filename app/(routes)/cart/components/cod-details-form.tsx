@@ -330,7 +330,7 @@ export default function CODDetailsForm({
                 <Button
                     type="submit"
                     disabled={!isValid || submitting}
-                    className="w-full bg-success text-success-foreground sm:w-auto"
+                    className="w-full sm:w-auto"
                 >
                     {submitting ? "Placing Order..." : "Place Order"}
                 </Button>

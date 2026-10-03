@@ -2,11 +2,14 @@
 
 import { useMemo } from "react";
 
+import { cn } from "@/lib/utils";
+
 interface CurrencyProps {
     value?: string | number;
     currency?: string; // default "PKR"
     locale?: string; // default "en-PK"
     noDecimals?: boolean; // optional: true => Rs 1,234 (no .00)
+    className?: string; // optional: merged onto the root element
 }
 
 const Currency: React.FC<CurrencyProps> = ({
@@ -14,6 +17,7 @@ const Currency: React.FC<CurrencyProps> = ({
     currency = "PKR",
     locale = "en-PK",
     noDecimals = true,
+    className,
 }) => {
     // No isMounted gate: locale/currency are fixed explicit arguments (not
     // derived from the browser's system locale), so Intl.NumberFormat
@@ -29,7 +33,7 @@ const Currency: React.FC<CurrencyProps> = ({
     }, [currency, locale, noDecimals]);
 
     return (
-        <div className="font-semibold text-foreground">{formatter.format(Number(value))}</div>
+        <div className={cn("font-semibold text-foreground", className)}>{formatter.format(Number(value))}</div>
     );
 };
 

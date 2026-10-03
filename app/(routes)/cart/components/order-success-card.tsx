@@ -51,7 +51,7 @@ export default function OrderSuccessCard({
     };
 
     return (
-        <div className="w-full max-w-2xl rounded-2xl border border-border bg-surface shadow-sm">
+        <div className="w-full max-w-2xl rounded-surface border border-border bg-surface">
             {/* Header */}
             <div className="border-b border-border p-6">
                 <div className="flex items-start justify-between gap-4">
@@ -70,7 +70,7 @@ export default function OrderSuccessCard({
                         </p>
                     </div>
 
-                    <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-meta font-medium text-muted-foreground">
+                    <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-meta text-muted-foreground">
                         {order.paymentMethod}
                     </span>
                 </div>
@@ -128,7 +128,7 @@ export default function OrderSuccessCard({
                                     </div>
 
                                     <div className="mt-1 flex flex-wrap items-center gap-2 text-meta text-muted-foreground">
-                                        <span className="rounded-full bg-surface-muted px-2 py-1">
+                                        <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1">
                                             Qty:{" "}
                                             <span className="font-medium text-foreground">
                                                 {p.quantity ?? 1}
@@ -136,7 +136,7 @@ export default function OrderSuccessCard({
                                         </span>
 
                                         {p.size?.name ? (
-                                            <span className="rounded-full bg-surface-muted px-2 py-1">
+                                            <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1">
                                                 Size:{" "}
                                                 <span className="font-medium text-foreground">
                                                     {p.size.name}
@@ -145,7 +145,7 @@ export default function OrderSuccessCard({
                                         ) : null}
 
                                         {p.color?.name ? (
-                                            <span className="inline-flex items-center gap-2 rounded-full bg-surface-muted px-2 py-1">
+                                            <span className="inline-flex items-center gap-2 rounded-full bg-surface-muted px-3 py-1">
                                                 <span
                                                     className="h-3 w-3 rounded-full border border-border"
                                                     style={
@@ -177,7 +177,7 @@ export default function OrderSuccessCard({
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
                     <Link
                         href="/"
-                        className="inline-flex items-center justify-center rounded-control bg-primary px-4 py-2 text-body font-medium text-primary-foreground hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                        className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-primary px-5 py-2.5 text-body font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                     >
                         Continue shopping
                     </Link>
