@@ -5,16 +5,13 @@ import { SlidersHorizontal, X } from "lucide-react";
 import { Dialog, Transition } from "@headlessui/react";
 
 import IconButton from "@/components/ui/icon-button";
-import { Category, Color, Size } from "@/types";
+import { Color, Size } from "@/types";
 
-import CategoryNav from "./category-nav";
 import Filter from "./filter";
 
 interface MobileFiltersProps {
   sizes: Size[],
   colors: Color[],
-  family?: { parent: Category, children: Category[] } | null,
-  activeCategoryId: string,
   /** Count of currently-active query-param filters (sizeId/colorId), so the
    * trigger can surface "current selections" without opening the drawer. */
   activeFilterCount?: number,
@@ -23,8 +20,6 @@ interface MobileFiltersProps {
 const MobileFilters: React.FC<MobileFiltersProps> = ({
   sizes,
   colors,
-  family,
-  activeCategoryId,
   activeFilterCount = 0,
 }) => {
   const [open, setOpen] = useState(false);
@@ -85,14 +80,6 @@ const MobileFilters: React.FC<MobileFiltersProps> = ({
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4">
-                  {family && (
-                    <CategoryNav
-                      parent={family.parent}
-                      items={family.children}
-                      activeId={activeCategoryId}
-                      onNavigate={onClose}
-                    />
-                  )}
                   <Filter
                     valueKey="sizeId"
                     name="Sizes"

@@ -39,7 +39,7 @@ const HomePage = async () => {
                                     href="/categories"
                                     className="shrink-0 rounded-control text-body font-semibold text-foreground underline underline-offset-2 hover:text-muted-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                                 >
-                                    Show all
+                                    Show all<span className="sr-only"> categories</span>
                                 </Link>
                             </div>
                             {/* Horizontal scroller: padding keeps focus rings

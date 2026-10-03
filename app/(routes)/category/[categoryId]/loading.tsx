@@ -11,7 +11,13 @@ const Loading = () => {
         <Skeleton className="w-full aspect-[16/9] rounded-xl sm:aspect-[21/9] md:aspect-[3/1]" />
       </div>
       <div className="px-4 sm:px-6 lg:px-8 pb-24">
-        <Skeleton className="mb-6 h-8 w-48" />
+        <Skeleton className="mb-3 h-4 w-40" />
+        <Skeleton className="mb-4 h-8 w-48" />
+        <div className="mb-4 flex gap-2 overflow-hidden p-1">
+          <Skeleton className="h-11 w-24 flex-none rounded-full" />
+          <Skeleton className="h-11 w-20 flex-none rounded-full" />
+          <Skeleton className="h-11 w-28 flex-none rounded-full" />
+        </div>
         <div className="lg:grid lg:grid-cols-5 lg:gap-x-8">
           <div className="hidden lg:block space-y-4">
             <Skeleton className="h-6 w-32" />

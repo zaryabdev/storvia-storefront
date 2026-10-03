@@ -60,6 +60,8 @@ const CategoryPage: React.FC<CategoryPageProps> = async ({
     ? categories.filter((item) => item.parentId === parent.id)
     : [];
   const family = parent && children.length > 0 ? { parent, children } : null;
+  // Breadcrumb parent: only when the current category is a child.
+  const breadcrumbParent = category.parentId ? parent : undefined;
 
   // Product count reflects exactly what this (unpaginated) request
   // returned — never a global/paginated total.
@@ -80,17 +82,45 @@ const CategoryPage: React.FC<CategoryPageProps> = async ({
           />
         )}
         <div className={cn("px-4 sm:px-6 lg:px-8 pb-24", !category.billboard && "pt-8")}>
-          <h1 className="mb-6 text-heading text-foreground">{category.name}</h1>
+          <nav aria-label="Breadcrumb" className="mb-3">
+            <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-meta text-muted-foreground">
+              <li>
+                <Link href="/" className="rounded-control underline-offset-2 hover:text-foreground hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+                  Home
+                </Link>
+              </li>
+              {breadcrumbParent && (
+                <>
+                  <li aria-hidden="true">/</li>
+                  <li className="min-w-0 break-words">
+                    <Link
+                      href={`/category/${breadcrumbParent.id}`}
+                      className="rounded-control underline-offset-2 hover:text-foreground hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                    >
+                      {breadcrumbParent.name}
+                    </Link>
+                  </li>
+                </>
+              )}
+              <li aria-hidden="true">/</li>
+              <li aria-current="page" className="min-w-0 break-words text-foreground">
+                {category.name}
+              </li>
+            </ol>
+          </nav>
+
+          <h1 className="mb-4 text-heading text-foreground">{category.name}</h1>
+
+          {family && (
+            <CategoryNav
+              parent={family.parent}
+              items={family.children}
+              activeId={category.id}
+            />
+          )}
 
           <div className="lg:grid lg:grid-cols-5 lg:gap-x-8">
             <div className="hidden lg:block">
-              {family && (
-                <CategoryNav
-                  parent={family.parent}
-                  items={family.children}
-                  activeId={category.id}
-                />
-              )}
               {hasActiveFilters && (
                 <div className="mb-4 flex justify-end">
                   <Link
@@ -117,8 +147,6 @@ const CategoryPage: React.FC<CategoryPageProps> = async ({
                 <MobileFilters
                   sizes={sizes}
                   colors={colors}
-                  family={family}
-                  activeCategoryId={category.id}
                   activeFilterCount={activeFilterCount}
                 />
                 <p className="text-meta text-muted-foreground">
