@@ -13,6 +13,8 @@ interface ProductListProps {
    */
   headingClassName?: string;
   gridClassName?: string;
+  /** Heading element; defaults to `h3` (unchanged for existing call sites). */
+  headingAs?: "h2" | "h3";
 }
 
 const ProductList: React.FC<ProductListProps> = ({
@@ -20,10 +22,11 @@ const ProductList: React.FC<ProductListProps> = ({
   items,
   headingClassName = "font-bold text-3xl",
   gridClassName = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4",
+  headingAs: Heading = "h3",
 }) => {
   return (
     <div className="space-y-4">
-      <h3 className={headingClassName}>{title}</h3>
+      <Heading className={headingClassName}>{title}</Heading>
       {items.length === 0 && <NoResults />}
       <div className={gridClassName}>
         {items.map((item) => (
