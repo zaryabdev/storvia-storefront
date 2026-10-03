@@ -41,10 +41,16 @@ const Summary = () => {
             <Button
                 onClick={() => router.push("/checkout")}
                 disabled={items.length === 0}
-                className="mt-6 w-full justify-center bg-success text-success-foreground"
+                className="mt-6 w-full justify-center"
             >
                 Continue to Checkout
             </Button>
+
+            {items.length > 0 && (
+                <p className="mt-3 text-center text-meta text-muted-foreground">
+                    Pay with cash on delivery
+                </p>
+            )}
         </div>
     );
 };

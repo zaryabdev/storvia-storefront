@@ -130,10 +130,12 @@ const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
         <ShoppingCart size={20} aria-hidden="true" />
       </Button>
 
-      <p className="flex items-center gap-x-2 text-meta text-muted-foreground">
-        <Truck size={16} aria-hidden="true" />
-        Cash on delivery available
-      </p>
+      {inStock && (
+        <p className="flex items-center gap-x-2 text-meta text-muted-foreground">
+          <Truck size={16} aria-hidden="true" />
+          Cash on delivery available
+        </p>
+      )}
     </div>
   );
 }

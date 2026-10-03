@@ -40,7 +40,7 @@ const CartItem: React.FC<CartItemProps> = ({ data, quantity }) => {
                         src={data.images[0].url}
                         alt={data.name}
                         sizes="(min-width: 640px) 128px, 96px"
-                        className="object-cover object-center"
+                        className="object-contain object-center p-1"
                     />
                 )}
             </Link>
@@ -70,11 +70,6 @@ const CartItem: React.FC<CartItemProps> = ({ data, quantity }) => {
                                 {data.size?.name && <span>Size: {data.size.name}</span>}
                             </div>
                         )}
-
-                        <div className="mt-1 flex items-center gap-1 text-meta text-muted-foreground">
-                            <Currency value={data.price} noDecimals />
-                            <span>each</span>
-                        </div>
                     </div>
 
                     <IconButton
@@ -116,8 +111,14 @@ const CartItem: React.FC<CartItemProps> = ({ data, quantity }) => {
                         )}
                     </div>
 
-                    <div aria-live="polite">
+                    <div aria-live="polite" className="flex flex-col items-end">
                         <Currency value={Number(data.price) * quantity} noDecimals />
+                        {quantity > 1 && (
+                            <div className="flex items-center gap-1 text-meta text-muted-foreground [&_div]:font-normal [&_div]:text-muted-foreground">
+                                <span>{quantity} ×</span>
+                                <Currency value={data.price} noDecimals />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

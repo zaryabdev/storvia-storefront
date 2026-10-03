@@ -34,11 +34,35 @@ const CartPage = () => {
             <Skeleton className="h-9 w-48" />
             <div className="mt-12 md:grid md:grid-cols-12 md:items-start md:gap-x-8 lg:gap-x-12">
               <div className="space-y-6 md:col-span-7">
-                <Skeleton className="h-32 w-full rounded-xl" />
-                <Skeleton className="h-32 w-full rounded-xl" />
+                {[0, 1].map((row) => (
+                  <div key={row} className="flex gap-4 border-b border-border py-6">
+                    <Skeleton className="h-24 w-24 shrink-0 rounded-control sm:h-32 sm:w-32" />
+                    <div className="flex flex-1 flex-col justify-between gap-3">
+                      <div className="space-y-2">
+                        <Skeleton className="h-5 w-2/3" />
+                        <Skeleton className="h-4 w-1/3" />
+                      </div>
+                      <div className="flex items-end justify-between gap-4">
+                        <Skeleton className="h-11 w-28 rounded-control" />
+                        <div className="space-y-1">
+                          <Skeleton className="ml-auto h-5 w-20" />
+                          <Skeleton className="ml-auto h-4 w-24" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
               <div className="mt-10 md:col-span-5 md:mt-0">
-                <Skeleton className="h-48 w-full rounded-xl" />
+                <div className="rounded-surface border border-border bg-surface-muted p-6">
+                  <Skeleton className="h-6 w-36" />
+                  <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
+                    <Skeleton className="h-5 w-12" />
+                    <Skeleton className="h-5 w-24" />
+                  </div>
+                  <Skeleton className="mt-6 h-11 w-full rounded-full" />
+                  <Skeleton className="mx-auto mt-3 h-4 w-40" />
+                </div>
               </div>
             </div>
           </div>
