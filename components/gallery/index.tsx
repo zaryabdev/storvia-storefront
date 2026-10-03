@@ -40,14 +40,14 @@ const Gallery: React.FC<GalleryProps> = ({
       <Tab.Panels className="aspect-square w-full overflow-hidden rounded-xl">
         {images.map((image, index) => (
           <Tab.Panel key={image.id}>
-            <div className="relative aspect-square h-full w-full overflow-hidden rounded-xl">
+            <div className="relative aspect-square h-full w-full overflow-hidden rounded-control bg-surface-muted">
               <NextImage
                 fill
                 src={image.url}
                 alt={productName}
                 priority={priority && index === 0}
                 sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover object-center"
+                className="object-contain object-center p-2"
               />
             </div>
           </Tab.Panel>

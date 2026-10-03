@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Truck } from "lucide-react";
 
 import Currency  from "@/components/ui/currency";
 import Button from "@/components/ui/button";
@@ -129,6 +129,11 @@ const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
         {inStock ? "Add to Cart" : "Out of stock"}
         <ShoppingCart size={20} aria-hidden="true" />
       </Button>
+
+      <p className="flex items-center gap-x-2 text-meta text-muted-foreground">
+        <Truck size={16} aria-hidden="true" />
+        Cash on delivery available
+      </p>
     </div>
   );
 }

@@ -31,7 +31,7 @@ const GalleryTab: React.FC<GalleryTabProps> = ({
             src={image.url}
             alt=""
             sizes="80px"
-            className="object-cover object-center"
+            className="object-contain object-center p-1"
           />
           {/* Selected state is already conveyed to assistive tech via
               Headless UI's own `aria-selected` on the tab; this ring is the

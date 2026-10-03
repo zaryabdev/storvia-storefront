@@ -57,7 +57,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ data }) => {
                             alt={data.name}
                             fill
                             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                            className="object-cover"
+                            className="object-contain p-2"
                         />
                     )}
                     {!inStock && (
