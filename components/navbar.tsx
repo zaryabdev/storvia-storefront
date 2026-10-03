@@ -17,27 +17,28 @@ const Navbar = async () => {
     return (
         <div className="border-b border-border bg-surface">
             <Container>
-                <div className="relative flex items-center h-16 gap-x-3 px-4 sm:px-6 lg:px-8">
-                    <div className="lg:hidden">
+                <div className="relative grid grid-cols-[minmax(96px,1fr)_minmax(0,auto)_minmax(96px,1fr)] items-center h-16 gap-x-2 px-4 sm:px-6 lg:flex lg:gap-x-3 lg:px-8">
+                    <div className="flex justify-start lg:hidden">
                         <MobileNav categories={categories} />
                     </div>
 
                     <Link
                         href="/"
-                        className="flex items-center gap-x-2"
+                        className="flex min-w-0 items-center justify-center gap-x-2"
                     >
                         {store?.logoUrl ? (
-                            <div className="relative w-[120px] h-[36px]">
+                            <div className="relative h-[36px] w-[120px] max-w-full">
                                 <Image
                                     src={store.logoUrl}
                                     alt={store?.name ?? "Store logo"}
                                     fill
+                                    sizes="120px"
                                     className="object-contain"
                                     priority
                                 />
                             </div>
                         ) : (
-                            <p className="text-xl font-bold text-foreground">
+                            <p className="truncate text-xl font-bold text-foreground">
                                 {store?.name ?? "STORE"}
                             </p>
                         )}
@@ -47,7 +48,7 @@ const Navbar = async () => {
                         <MainNav data={categories} />
                     </div>
 
-                    <div className="ml-auto flex items-center gap-x-2">
+                    <div className="ml-auto flex items-center justify-end gap-x-2">
                         <Link
                             href="/search"
                             aria-label="Search"

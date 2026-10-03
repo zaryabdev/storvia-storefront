@@ -17,6 +17,7 @@ module.exports = {
         foreground: 'var(--color-foreground)',
         surface: 'var(--color-surface)',
         'surface-muted': 'var(--color-surface-muted)',
+        'surface-tint': 'var(--color-surface-tint)',
         border: 'var(--color-border)',
         muted: 'var(--color-muted)',
         'muted-foreground': 'var(--color-muted-foreground)',
