@@ -1,8 +1,10 @@
 "use client";
 
 import NextImage from "next/image";
-import { Tab } from "@headlessui/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
+import { cn } from "@/lib/utils";
 import { Image } from "@/types";
 
 import GalleryTab from "./gallery-tab";
@@ -13,14 +15,21 @@ interface GalleryProps {
    * on meaningful product photography). */
   productName: string;
   /**
-   * Priority-load the initially active image. Defaults to false so
-   * PreviewModal — which opens well after initial page load via a user
-   * click, and is never the page's LCP candidate — never marks its image
-   * priority. The product detail page passes `priority`, since its
-   * gallery genuinely is the LCP candidate there.
+   * Priority-load the first image. Defaults to false so PreviewModal — which
+   * opens well after initial page load via a user click, and is never the
+   * page's LCP candidate — never marks its image priority. The product
+   * detail page passes `priority`, since its gallery genuinely is the LCP
+   * candidate there. Every other photo is always lazy.
    */
   priority?: boolean;
 }
+
+const IMAGE_SIZES = "(min-width: 1024px) 50vw, 100vw";
+const IMAGE_CLASS = "object-contain object-center p-2";
+
+// Photo 1 keeps the product name as its alt; later photos are numbered.
+const altFor = (productName: string, index: number) =>
+  index === 0 ? productName : `${productName}, photo ${index + 1}`;
 
 const Gallery: React.FC<GalleryProps> = ({
   images = [],
@@ -35,43 +44,206 @@ const Gallery: React.FC<GalleryProps> = ({
     return <div className="aspect-square w-full overflow-hidden rounded-xl bg-surface-muted" />;
   }
 
-  return (
-    <Tab.Group as="div" className="flex flex-col gap-4">
-      <Tab.Panels className="aspect-square w-full overflow-hidden rounded-xl">
-        {images.map((image, index) => (
-          <Tab.Panel key={image.id}>
-            <div className="relative aspect-square h-full w-full overflow-hidden rounded-control bg-surface-muted">
-              <NextImage
-                fill
-                src={image.url}
-                alt={productName}
-                priority={priority && index === 0}
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-contain object-center p-2"
-              />
-            </div>
-          </Tab.Panel>
-        ))}
-      </Tab.Panels>
-
-      {/* Touch-friendly thumbnail row, visible at every breakpoint (mobile
-          previously had no way to switch images at all — the thumbnail
-          list was `hidden` below `sm`). Only shown when there's something
-          to switch between. */}
-      {images.length > 1 && (
-        <Tab.List className="flex gap-3 overflow-x-auto pb-1">
-          {images.map((image, index) => (
-            <GalleryTab
-              key={image.id}
-              image={image}
-              productName={productName}
-              index={index}
+  // Exactly one photo: no carousel, dots, arrows or swipe container.
+  if (images.length === 1) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="aspect-square w-full overflow-hidden rounded-xl">
+          <div className="relative aspect-square h-full w-full overflow-hidden rounded-control bg-surface-muted">
+            <NextImage
+              fill
+              src={images[0].url}
+              alt={productName}
+              priority={priority}
+              sizes={IMAGE_SIZES}
+              className={IMAGE_CLASS}
             />
-          ))}
-        </Tab.List>
-      )}
-    </Tab.Group>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <PhotoCarousel images={images} productName={productName} priority={priority} />;
+};
+
+const PhotoCarousel: React.FC<GalleryProps> = ({ images, productName, priority }) => {
+  const [index, setIndex] = useState(0);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
+  // While we scroll programmatically (dot, arrow, thumbnail, key), the active
+  // index is already set; ignore the observer until the scroll settles.
+  const lockObserver = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const total = images.length;
+
+  const goTo = useCallback(
+    (target: number) => {
+      const next = Math.min(Math.max(target, 0), total - 1);
+      const strip = stripRef.current;
+      const slide = slideRefs.current[next];
+
+      setIndex(next);
+
+      if (!strip || !slide) {
+        return;
+      }
+
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (lockObserver.current) {
+        clearTimeout(lockObserver.current);
+      }
+      lockObserver.current = setTimeout(() => {
+        lockObserver.current = null;
+      }, reduceMotion ? 100 : 700);
+
+      strip.scrollTo({ left: slide.offsetLeft, behavior: reduceMotion ? "auto" : "smooth" });
+    },
+    [total],
   );
-}
+
+  // Swiping: the slide that is mostly in view becomes the active one.
+  useEffect(() => {
+    const strip = stripRef.current;
+
+    if (!strip || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (lockObserver.current) {
+          return;
+        }
+
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const slideIndex = slideRefs.current.indexOf(entry.target as HTMLDivElement);
+
+            if (slideIndex >= 0) {
+              setIndex(slideIndex);
+            }
+          }
+        }
+      },
+      { root: strip, threshold: 0.6 },
+    );
+
+    slideRefs.current.forEach((slide) => slide && observer.observe(slide));
+
+    return () => {
+      observer.disconnect();
+      if (lockObserver.current) {
+        clearTimeout(lockObserver.current);
+      }
+    };
+  }, [total]);
+
+  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault();
+      goTo(index + (event.key === "ArrowRight" ? 1 : -1));
+    }
+  };
+
+  const arrowClass =
+    "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-sm transition-colors hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-40 md:flex";
+
+  return (
+    <div
+      role="group"
+      aria-roledescription="carousel"
+      aria-label="Product photos"
+      onKeyDown={onKeyDown}
+      className="flex flex-col gap-4"
+    >
+      <div className="relative">
+        <div
+          ref={stripRef}
+          tabIndex={0}
+          className="relative flex w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden rounded-xl [-ms-overflow-style:none] [scrollbar-width:none] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-scrollbar]:hidden"
+        >
+          {images.map((image, imageIndex) => (
+            <div
+              key={image.id}
+              ref={(node) => {
+                slideRefs.current[imageIndex] = node;
+              }}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`Photo ${imageIndex + 1} of ${total}`}
+              className="aspect-square w-full flex-none snap-center"
+            >
+              <div className="relative aspect-square h-full w-full overflow-hidden rounded-control bg-surface-muted">
+                <NextImage
+                  fill
+                  src={image.url}
+                  alt={altFor(productName, imageIndex)}
+                  priority={priority && imageIndex === 0}
+                  sizes={IMAGE_SIZES}
+                  className={IMAGE_CLASS}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          aria-label="Previous photo"
+          disabled={index === 0}
+          onClick={() => goTo(index - 1)}
+          className={cn(arrowClass, "left-2")}
+        >
+          <ChevronLeft aria-hidden="true" className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          aria-label="Next photo"
+          disabled={index === total - 1}
+          onClick={() => goTo(index + 1)}
+          className={cn(arrowClass, "right-2")}
+        >
+          <ChevronRight aria-hidden="true" className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Phones: dots replace the thumbnails. */}
+      <div className="flex flex-wrap items-center justify-center gap-1 md:hidden">
+        {images.map((image, imageIndex) => (
+          <button
+            key={image.id}
+            type="button"
+            aria-label={`Show photo ${imageIndex + 1} of ${total}`}
+            aria-current={imageIndex === index ? "true" : undefined}
+            onClick={() => goTo(imageIndex)}
+            className="flex h-6 w-6 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          >
+            <span
+              aria-hidden="true"
+              className={cn(
+                "h-2 w-2 rounded-full transition-colors",
+                imageIndex === index ? "bg-primary" : "bg-border",
+              )}
+            />
+          </button>
+        ))}
+      </div>
+
+      {/* md and up: the existing thumbnail row. */}
+      <div className="hidden gap-3 overflow-x-auto pb-1 md:flex">
+        {images.map((image, imageIndex) => (
+          <GalleryTab
+            key={image.id}
+            image={image}
+            productName={productName}
+            index={imageIndex}
+            selected={imageIndex === index}
+            onSelect={goTo}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default Gallery;
