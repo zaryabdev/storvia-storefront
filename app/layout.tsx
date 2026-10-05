@@ -12,6 +12,17 @@ import "./globals.css";
 
 const font = Urbanist({ subsets: ["latin"] });
 
+// Neutral fallback tab icon for a Store without its own favicon: never the
+// Storvia mark, never the Next.js default. No file-based app/favicon.ico or
+// app/icon.* may exist, or it would override these metadata icons.
+const DEFAULT_ICONS: Metadata["icons"] = {
+    icon: [
+        { url: "/default-favicon.svg", type: "image/svg+xml" },
+        { url: "/default-favicon.png", type: "image/png" },
+    ],
+    apple: "/default-favicon.png",
+};
+
 // Same store-id env var and getStore() call Navbar already makes — Next
 // dedupes identical fetches within one render, so this isn't a second
 // network request. Falls back to a generic title/description rather than
@@ -22,10 +33,14 @@ export async function generateMetadata(): Promise<Metadata> {
     const storeId = process.env.NEXT_PUBLIC_STORE_ID;
     const store = storeId ? await getStore(storeId).catch(() => null) : null;
     const name = store?.name ?? "Store";
+    const faviconUrl = store?.faviconUrl;
 
     return {
         title: name,
         description: `${name} - The place for all your purchases.`,
+        icons: faviconUrl
+            ? { icon: faviconUrl, apple: faviconUrl }
+            : DEFAULT_ICONS,
     };
 }
 

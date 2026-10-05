@@ -97,4 +97,6 @@ export type Store = {
     id: string;
     name: string;
     logoUrl: string | null;
+    // Optional: an older Admin without the field omits it.
+    faviconUrl?: string | null;
 };
