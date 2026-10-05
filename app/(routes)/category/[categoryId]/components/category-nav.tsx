@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import CategoryIcon from "@/components/category-icon";
 import { cn } from "@/lib/utils";
 import { Category } from "@/types";
 
@@ -22,8 +23,8 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
   activeId,
 }) => {
   const routes = [
-    { id: parent.id, label: `All ${parent.name}` },
-    ...items.map((item) => ({ id: item.id, label: item.name })),
+    { id: parent.id, label: `All ${parent.name}`, iconKey: parent.iconKey },
+    ...items.map((item) => ({ id: item.id, label: item.name, iconKey: item.iconKey })),
   ];
 
   return (
@@ -38,12 +39,13 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
                 href={`/category/${route.id}`}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  'inline-flex min-h-[44px] items-center whitespace-nowrap rounded-full border px-4 text-body transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
+                  'inline-flex min-h-[44px] items-center gap-2 whitespace-nowrap rounded-full border px-4 text-body transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
                   active
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-surface text-foreground hover:bg-surface-muted',
                 )}
               >
+                <CategoryIcon iconKey={route.iconKey} />
                 {route.label}
               </Link>
             </li>

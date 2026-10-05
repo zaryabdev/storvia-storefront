@@ -26,6 +26,9 @@ export interface Category {
     name: string;
     parentId: string | null;
     billboardId: string | null;
+    // Curated icon key (lib/category-icons.ts); optional so an older Admin
+    // without the field still works. Unknown keys render nothing.
+    iconKey?: string | null;
     // Only included by the single-category endpoint, not the category list.
     billboard?: Billboard | null;
 }

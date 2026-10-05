@@ -5,6 +5,7 @@ import getHomepageBillboard from "@/actions/get-homepage-billboard";
 import getProducts from "@/actions/get-products";
 import ProductList from "@/components/product-list";
 import HomeHero from "@/components/home-hero";
+import CategoryIcon from "@/components/category-icon";
 import Container from "@/components/ui/container";
 
 export const revalidate = 0;
@@ -51,8 +52,9 @@ const HomePage = async () => {
                                     <li key={category.id} className="flex-none snap-start">
                                         <Link
                                             href={`/category/${category.id}`}
-                                            className="flex min-h-[56px] w-[8.5rem] items-center justify-center rounded-control bg-surface-muted px-4 py-3 text-center text-body font-semibold text-foreground transition hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:w-40"
+                                            className="flex min-h-[56px] w-[8.5rem] items-center justify-center gap-2 rounded-control bg-surface-muted px-4 py-3 text-center text-body font-semibold text-foreground transition hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:w-40"
                                         >
+                                            <CategoryIcon iconKey={category.iconKey} />
                                             <span className="line-clamp-2 break-words">{category.name}</span>
                                         </Link>
                                     </li>

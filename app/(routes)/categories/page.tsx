@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import getCategories from "@/actions/get-categories";
+import CategoryIcon from "@/components/category-icon";
 import Container from "@/components/ui/container";
 
 export const revalidate = 0;
@@ -34,6 +35,7 @@ const CategoriesPage = async () => {
                         href={`/category/${parent.id}`}
                         className="rounded-control underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                       >
+                        <CategoryIcon iconKey={parent.iconKey} className="mr-2 inline-block align-middle" />
                         {parent.name}
                       </Link>
                     </h2>
@@ -43,8 +45,9 @@ const CategoriesPage = async () => {
                           <li key={child.id}>
                             <Link
                               href={`/category/${child.id}`}
-                              className="inline-flex min-h-[44px] items-center rounded-control text-body text-foreground underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                              className="inline-flex min-h-[44px] items-center gap-2 rounded-control text-body text-foreground underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                             >
+                              <CategoryIcon iconKey={child.iconKey} />
                               {child.name}
                             </Link>
                           </li>
