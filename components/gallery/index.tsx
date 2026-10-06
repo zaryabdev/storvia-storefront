@@ -2,8 +2,7 @@
 
 import NextImage from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-
+import { useSnapCarousel } from "@/hooks/use-snap-carousel";
 import { cn } from "@/lib/utils";
 import { Image } from "@/types";
 
@@ -68,83 +67,8 @@ const Gallery: React.FC<GalleryProps> = ({
 };
 
 const PhotoCarousel: React.FC<GalleryProps> = ({ images, productName, priority }) => {
-  const [index, setIndex] = useState(0);
-  const stripRef = useRef<HTMLDivElement>(null);
-  const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
-  // While we scroll programmatically (dot, arrow, thumbnail, key), the active
-  // index is already set; ignore the observer until the scroll settles.
-  const lockObserver = useRef<ReturnType<typeof setTimeout> | null>(null);
   const total = images.length;
-
-  const goTo = useCallback(
-    (target: number) => {
-      const next = Math.min(Math.max(target, 0), total - 1);
-      const strip = stripRef.current;
-      const slide = slideRefs.current[next];
-
-      setIndex(next);
-
-      if (!strip || !slide) {
-        return;
-      }
-
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-      if (lockObserver.current) {
-        clearTimeout(lockObserver.current);
-      }
-      lockObserver.current = setTimeout(() => {
-        lockObserver.current = null;
-      }, reduceMotion ? 100 : 700);
-
-      strip.scrollTo({ left: slide.offsetLeft, behavior: reduceMotion ? "auto" : "smooth" });
-    },
-    [total],
-  );
-
-  // Swiping: the slide that is mostly in view becomes the active one.
-  useEffect(() => {
-    const strip = stripRef.current;
-
-    if (!strip || typeof IntersectionObserver === "undefined") {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (lockObserver.current) {
-          return;
-        }
-
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const slideIndex = slideRefs.current.indexOf(entry.target as HTMLDivElement);
-
-            if (slideIndex >= 0) {
-              setIndex(slideIndex);
-            }
-          }
-        }
-      },
-      { root: strip, threshold: 0.6 },
-    );
-
-    slideRefs.current.forEach((slide) => slide && observer.observe(slide));
-
-    return () => {
-      observer.disconnect();
-      if (lockObserver.current) {
-        clearTimeout(lockObserver.current);
-      }
-    };
-  }, [total]);
-
-  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-      event.preventDefault();
-      goTo(index + (event.key === "ArrowRight" ? 1 : -1));
-    }
-  };
+  const { index, goTo, onKeyDown, stripRef, slideRef } = useSnapCarousel(total);
 
   const arrowClass =
     "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-sm transition-colors hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-40 md:flex";
@@ -166,9 +90,7 @@ const PhotoCarousel: React.FC<GalleryProps> = ({ images, productName, priority }
           {images.map((image, imageIndex) => (
             <div
               key={image.id}
-              ref={(node) => {
-                slideRefs.current[imageIndex] = node;
-              }}
+              ref={slideRef(imageIndex)}
               role="group"
               aria-roledescription="slide"
               aria-label={`Photo ${imageIndex + 1} of ${total}`}

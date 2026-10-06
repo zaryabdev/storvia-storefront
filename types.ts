@@ -15,10 +15,28 @@ export interface Image {
     url: string;
 }
 
+export type BillboardLayout = "SPLIT" | "FULL_BLEED" | "HEADING_LED";
+
+export interface BillboardImage {
+    id: string;
+    url: string;
+    position?: number;
+}
+
+// The homepage-only fields are optional so an Admin without them still works
+// (see `components/home-hero.tsx` for the fallbacks). `imageUrl` is the cover
+// (= first photo) and is all the category banner uses.
 export interface Billboard {
     id: string;
     label: string;
     imageUrl: string;
+    layout?: BillboardLayout;
+    subheading?: string | null;
+    showSearch?: boolean;
+    ctaLabel?: string | null;
+    ctaCategoryId?: string | null;
+    ctaCategory?: { id: string; name: string } | null;
+    images?: BillboardImage[];
 }
 
 export interface Category {
