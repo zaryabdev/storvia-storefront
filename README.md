@@ -1,71 +1,20 @@
-# Full Stack E-Commerce + Dashboard & CMS: Next.js 13 App Router, React, Tailwind, Prisma, MySQL, 2023
+# storvia-storefront
 
-![Copy of Copy of Fullstack Twitter Clone (1)](https://github.com/AntonioErdeljac/next13-ecommerce-admin/assets/23248726/088760cb-837d-44b7-a959-63089385d0a0)
+The public customer storefront of Storvia: a mobile-first Next.js app that shows one merchant's catalog (home, categories, search, product pages, cart) and takes guest Cash-on-Delivery orders. It has no database; all data comes from `storvia-admin`'s API.
 
-This is a repository for a Full Stack E-Commerce + Dashboard & CMS: Next.js 13 App Router, React, Tailwind, Prisma, MySQL
+Stack: Next.js 13.4 (App Router), React 18, TypeScript, Tailwind.
 
-## MAKE SURE YOU HAVE [ADMIN](https://github.com/AntonioErdeljac/next13-ecommerce-admin/tree/master) SETUP FIRST!
+## Setup
 
-[VIDEO TUTORIAL](https://youtu.be/5miHyP6lExg)
-
-Key Features:
-
-- We will be using Shadcn UI for the Admin!
-- Our admin dashboard is going to serve as both CMS, Admin and API!
-- You will be able to control mulitple vendors / stores through this single CMS! (For example you can have a "Shoe store" and a "Laptop store" and a "Suit store", and our CMS will generate API routes for all of those individually!)
-- You will be able to create, update and delete categories!
-- You will be able to create, update and delete products!
-- You will be able to upload multiple images for products, and change them whenever you want!
-- You will be able to create, update and delete filters such as "Color" and "Size", and then match them in the "Product" creation form.
-- You will be able to create, update and delete "Billboards" which are these big texts on top of the page. You will be able to attach them to a single category, or use them standalone (Our Admin generates API for all of those cases!)
-- You will be able to Search through all categories, products, sizes, colors, billboards with included pagination!
-- You will be able to control which products are "featured" so they show on the homepage!
-- You will be able to see your orders, sales, etc.
-- You will be able to see graphs of your revenue etc.
-- You will learn Clerk Authentication!
-- Order creation
-- Cash-on-delivery ordering
-- MySQL + Prisma + PlanetScale
-
-### Prerequisites
-
-**Node version 14.x**
-
-### Cloning the repository
-
-```shell
-git clone https://github.com/AntonioErdeljac/next13-ecommerce-store.git
+```bash
+npm install
+cp .env.example .env        # then fill in the values
+npm run dev                 # http://localhost:4001
 ```
 
-### Install packages
+A running `storvia-admin` (default `http://localhost:4000`) is required, and `NEXT_PUBLIC_STORE_ID` must be a Store id from it.
 
-```shell
-npm i
-```
+## More
 
-### Setup .env file
-
-```js
-NEXT_PUBLIC_API_URL=
-NEXT_PUBLIC_API_BASE_URL=
-NEXT_PUBLIC_WHATSAPP_NUMBER=
-NEXT_PUBLIC_STORE_ID=
-
-```
-
-Phone must be international format with country code, no +, no spaces
-e.g. Netherlands +31 6 1234 5678 → 31612345678
-
-### Start the app
-
-```shell
-npm run dev
-```
-
-## Available commands
-
-Running commands with npm `npm run [command]`
-
-| command | description                              |
-| :------ | :--------------------------------------- |
-| `dev`   | Starts a development instance of the app |
+- `AGENTS.md`: working rules for this repo (`CLAUDE.md` imports it).
+- `../storvia-ai-context`: project state, API contracts, decisions and the backlog.

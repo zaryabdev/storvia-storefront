@@ -21,8 +21,7 @@ export const revalidate = 0;
  * Storvia's own internal COD checkout page. This is NOT a restored
  * Stripe/card flow — there is no payment gateway involved anywhere here,
  * only the same Cash-on-Delivery order-creation POST that previously ran
- * inside a Cart modal. See docs/PROJECT_BRIEF.md and AGENTS.md/CLAUDE.md
- * for the full architectural note.
+ * inside a Cart modal. See storvia-ai-context (projects/storefront/CONTEXT.md).
  */
 const CheckoutPage = () => {
     const [isMounted, setIsMounted] = useState(false);
