@@ -3,8 +3,11 @@ export interface Product {
     category: Category;
     name: string;
     price: string;
+    // Display-only "was" price (decimal string). Absent/null/not above `price` = no sale.
+    compareAtPrice?: string | null;
     quantity: number;
     isFeatured: boolean;
+    createdAt?: string;
     size: Size;
     color: Color;
     images: Image[];

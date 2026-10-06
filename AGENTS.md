@@ -38,6 +38,7 @@ Architecture:
 - Next.js 13.4.4 (App Router). `lucide-react` is pinned at exactly 0.577.0 until Next.js is upgraded.
 - Pages are rendered per request (`revalidate = 0`), and `next build` fetches from Admin, so Admin must be reachable during a build.
 - The build also fetches the Urbanist Google font (`next/font/google`); in restricted environments this can fail the build. Say so rather than treating it as a code error.
+- `next build` overwrites the `.next` folder used by a running `next dev`; stop the dev server first or build in an isolated copy.
 
 ## Updating docs
 

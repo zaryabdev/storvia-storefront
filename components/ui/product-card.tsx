@@ -5,10 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Button from "@/components/ui/button";
-import Currency from "@/components/ui/currency";
+import Price from "@/components/ui/price";
 import IconButton from "@/components/ui/icon-button";
 import useCart from "@/hooks/use-cart";
 import usePreviewModal from "@/hooks/use-preview-modal";
+import { getSale } from "@/lib/sale-price";
 import { Product } from "@/types";
 
 interface ProductCardProps {
@@ -34,6 +35,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ data }) => {
     const cart = useCart();
 
     const inStock = data.quantity > 0;
+    const sale = getSale(data.price, data.compareAtPrice);
 
     const onPreview = () => {
         previewModal.onOpen(data);
@@ -60,10 +62,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ data }) => {
                             className="object-contain p-2"
                         />
                     )}
-                    {!inStock && (
-                        <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-foreground/80 px-2 py-1 text-meta font-medium text-primary-foreground">
-                            Out of stock
-                        </span>
+                    {(!inStock || (sale && sale.percentOff > 0)) && (
+                        <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
+                            {sale && sale.percentOff > 0 && (
+                                // The sale text for screen readers is in <Price>; the badge is visual.
+                                <span aria-hidden="true" className="inline-flex items-center rounded-full bg-danger px-2 py-1 text-meta font-semibold text-danger-foreground">
+                                    −{sale.percentOff}%
+                                </span>
+                            )}
+                            {!inStock && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-foreground/80 px-2 py-1 text-meta font-medium text-primary-foreground">
+                                    Out of stock
+                                </span>
+                            )}
+                        </div>
                     )}
                 </div>
 
@@ -80,7 +92,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ data }) => {
                             {data.color?.name && <span>{data.color.name}</span>}
                         </div>
                     )}
-                    <Currency value={data.price} noDecimals />
+                    <Price price={data.price} compareAtPrice={data.compareAtPrice} />
                 </div>
             </Link>
 

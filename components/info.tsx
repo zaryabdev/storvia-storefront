@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Minus, Plus, ShoppingCart, Truck } from "lucide-react";
 
-import Currency  from "@/components/ui/currency";
+import Price from "@/components/ui/price";
 import Button from "@/components/ui/button";
 import { Product } from "@/types";
 import useCart from "@/hooks/use-cart";
@@ -57,7 +57,7 @@ const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
         ) : (
           <h1 className={nameClassName}>{data.name}</h1>
         )}
-        <Currency value={data?.price} />
+        <Price price={data?.price} compareAtPrice={data?.compareAtPrice} />
       </div>
 
       <dl className="flex flex-col gap-y-3 border-y border-border py-6">

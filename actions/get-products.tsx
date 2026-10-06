@@ -14,6 +14,8 @@ interface Query {
   // Storefront search text. Omitted when empty so existing callers and
   // their request URLs are unchanged.
   q?: string;
+  // Newest-first cap (the API accepts 1–50 and ignores invalid values).
+  limit?: number;
 }
 
 const getProducts = async (query: Query): Promise<Product[]> => {
@@ -26,6 +28,7 @@ const getProducts = async (query: Query): Promise<Product[]> => {
       isFeatured: query.isFeatured,
       includeChildCategories: query.includeChildCategories || undefined,
       q: query.q || undefined,
+      limit: query.limit || undefined,
     },
   });
 

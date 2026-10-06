@@ -10,12 +10,19 @@ import Container from "@/components/ui/container";
 
 export const revalidate = 0;
 
+const NEW_ARRIVALS_COUNT = 8;
+
 const HomePage = async () => {
-    const [products, billboard, categories] = await Promise.all([
+    const [products, billboard, categories, newest] = await Promise.all([
         getProducts({ isFeatured: true }),
         getHomepageBillboard(),
         getCategories(),
+        getProducts({ limit: NEW_ARRIVALS_COUNT }),
     ]);
+
+    // Newest first from the API; slice anyway so an Admin that ignores
+    // `limit` still shows exactly 8.
+    const newArrivals = newest.slice(0, NEW_ARRIVALS_COUNT);
 
     const topLevelCategories = categories.filter((category) => !category.parentId);
 
@@ -68,6 +75,16 @@ const HomePage = async () => {
                             title="Featured"
                             headingAs="h2"
                             items={products}
+                            headingClassName="text-heading text-foreground"
+                            gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
+                        />
+                    )}
+
+                    {newArrivals.length > 0 && (
+                        <ProductList
+                            title="New arrivals"
+                            headingAs="h2"
+                            items={newArrivals}
                             headingClassName="text-heading text-foreground"
                             gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
                         />
