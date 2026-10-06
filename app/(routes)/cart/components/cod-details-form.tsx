@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/components/ui/button";
+import { PAKISTANI_MOBILE_MESSAGE, isPakistaniMobile } from "@/lib/phone";
 import type { CreateOrderPayload } from "@/types";
 import { useMemo, useState } from "react";
 
@@ -49,9 +50,12 @@ export default function CODDetailsForm({
 
     const errors = useMemo(() => {
         const e: Record<string, string> = {};
-        // minimal COD requirements (unchanged semantics from before this refactor)
+        // Same rules and messages as Admin's /cod route (lib/phone.ts is
+        // identical in both repos). Postal code, email, line 2 and notes
+        // are optional.
         if (!vals.name.trim()) e.name = "Name is required";
         if (!vals.phone.trim()) e.phone = "Phone is required";
+        else if (!isPakistaniMobile(vals.phone.trim())) e.phone = PAKISTANI_MOBILE_MESSAGE;
         if (!vals.line1.trim()) e.line1 = "Address line 1 is required";
         if (!vals.city.trim()) e.city = "City is required";
         return e;
@@ -163,10 +167,17 @@ export default function CODDetailsForm({
                                 value={vals.phone}
                                 onChange={set("phone")}
                                 onBlur={markTouched("phone")}
-                                placeholder="+92..."
+                                placeholder="0300 1234567"
                                 aria-invalid={showError("phone")}
-                                aria-describedby={showError("phone") ? "cod-phone-error" : undefined}
+                                aria-describedby={
+                                    showError("phone")
+                                        ? "cod-phone-help cod-phone-error"
+                                        : "cod-phone-help"
+                                }
                             />
+                            <p id="cod-phone-help" className="mt-1 text-meta text-muted-foreground">
+                                We&apos;ll use this to confirm your order on WhatsApp.
+                            </p>
                             {showError("phone") && (
                                 <p id="cod-phone-error" className="mt-1 text-meta text-danger">
                                     {errors.phone}
