@@ -72,6 +72,10 @@ export type OrderResponse = {
     status: "DRAFT" | "CONFIRMED" | "DELIVERED" | "CANCELED" | string;
     paymentMethod: "COD" | "STRIPE" | string;
     totalPrice: number;
+    /** Decimal strings from Admin. Optional: older Admin responses lack deliveryFee. */
+    subtotal?: string | null;
+    deliveryFee?: string | null;
+    total?: string | null;
     store: { id: string; name: string };
     products: Array<{
         id: string;
@@ -109,7 +113,8 @@ export type CreateOrderPayload = {
     shipping?: {
         line1: string;
         line2?: string;
-        city: string;
+        city: string; // display name ("Other city" for any other town)
+        cityKey?: string; // lib/pakistan-cities.ts key, "other" included
         postalCode?: string;
         country?: string; // "PK"
         notes?: string;

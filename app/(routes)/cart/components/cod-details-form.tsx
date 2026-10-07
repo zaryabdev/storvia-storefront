@@ -1,6 +1,8 @@
 "use client";
 
 import Button from "@/components/ui/button";
+import type { DeliveryInfo } from "@/lib/delivery-display";
+import { OTHER_CITY, cityName } from "@/lib/pakistan-cities";
 import { PAKISTANI_MOBILE_MESSAGE, isPakistaniMobile } from "@/lib/phone";
 import type { CreateOrderPayload } from "@/types";
 import { useMemo, useState } from "react";
@@ -11,7 +13,6 @@ type FormValues = {
     email: string;
     line1: string;
     line2: string;
-    city: string;
     postalCode: string;
     notes: string;
 };
@@ -21,9 +22,17 @@ export default function CODDetailsForm({
     onSubmit,
     submitting,
     onCancel,
+    delivery,
+    cityKey,
+    onCityKeyChange,
     children,
 }: {
     items: Array<{ productId: string; quantity: number }>;
+    /** The Store's delivery settings (or the fallback list). */
+    delivery: DeliveryInfo;
+    /** The chosen city key ("" = none); owned by the page so its summary can show the fee. */
+    cityKey: string;
+    onCityKeyChange: (key: string) => void;
     submitting: boolean;
     onCancel: () => void;
     onSubmit: (payload: CreateOrderPayload) => Promise<void>;
@@ -41,7 +50,6 @@ export default function CODDetailsForm({
         email: "",
         line1: "",
         line2: "",
-        city: "",
         postalCode: "",
         notes: "",
     });
@@ -57,9 +65,9 @@ export default function CODDetailsForm({
         if (!vals.phone.trim()) e.phone = "Phone is required";
         else if (!isPakistaniMobile(vals.phone.trim())) e.phone = PAKISTANI_MOBILE_MESSAGE;
         if (!vals.line1.trim()) e.line1 = "Address line 1 is required";
-        if (!vals.city.trim()) e.city = "City is required";
+        if (!cityKey) e.city = "City is required";
         return e;
-    }, [vals]);
+    }, [vals, cityKey]);
 
     const isValid = Object.keys(errors).length === 0;
 
@@ -69,10 +77,15 @@ export default function CODDetailsForm({
             setVals((p) => ({ ...p, [key]: ev.target.value }));
         };
 
-    const markTouched = (key: keyof FormValues) => () =>
+    // One served city: no dropdown, it's used automatically (the page sets it).
+    const lockedCity = delivery.lockedCityKey
+        ? delivery.cities.find((city) => city.key === delivery.lockedCityKey) ?? null
+        : null;
+
+    const markTouched = (key: keyof FormValues | "city") => () =>
         setTouched((p) => ({ ...p, [key]: true }));
 
-    const showError = (key: keyof FormValues) => Boolean(touched[key] && errors[key]);
+    const showError = (key: keyof FormValues | "city") => Boolean(touched[key] && errors[key]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -102,7 +115,9 @@ export default function CODDetailsForm({
             shipping: {
                 line1: vals.line1.trim(),
                 line2: vals.line2.trim() || undefined,
-                city: vals.city.trim(),
+                // Display name for older Admins; Admin resolves cityKey first.
+                city: cityName(cityKey) ?? cityKey,
+                cityKey,
                 postalCode: vals.postalCode.trim() || undefined,
                 country: "PK",
                 notes: vals.notes.trim() || undefined,
@@ -224,8 +239,20 @@ export default function CODDetailsForm({
                                 onBlur={markTouched("line1")}
                                 placeholder="House, street, area"
                                 aria-invalid={showError("line1")}
-                                aria-describedby={showError("line1") ? "cod-line1-error" : undefined}
+                                aria-describedby={
+                                    [
+                                        cityKey === OTHER_CITY.key ? "cod-line1-help" : "",
+                                        showError("line1") ? "cod-line1-error" : "",
+                                    ]
+                                        .filter(Boolean)
+                                        .join(" ") || undefined
+                                }
                             />
+                            {cityKey === OTHER_CITY.key && (
+                                <p id="cod-line1-help" className="mt-1 text-meta text-muted-foreground">
+                                    Please include your town or area in the address.
+                                </p>
+                            )}
                             {showError("line1") && (
                                 <p id="cod-line1-error" className="mt-1 text-meta text-danger">
                                     {errors.line1}
@@ -250,29 +277,48 @@ export default function CODDetailsForm({
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <label htmlFor="cod-city" className="text-meta font-medium text-muted-foreground">
-                                    City *
-                                </label>
-                                <input
-                                    id="cod-city"
-                                    name="address-level2"
-                                    type="text"
-                                    autoComplete="address-level2"
-                                    className={inputClassName}
-                                    value={vals.city}
-                                    onChange={set("city")}
-                                    onBlur={markTouched("city")}
-                                    placeholder="Karachi"
-                                    aria-invalid={showError("city")}
-                                    aria-describedby={showError("city") ? "cod-city-error" : undefined}
-                                />
-                                {showError("city") && (
-                                    <p id="cod-city-error" className="mt-1 text-meta text-danger">
-                                        {errors.city}
+                            {lockedCity ? (
+                                <div>
+                                    <span className="text-meta font-medium text-muted-foreground">City</span>
+                                    <p className="mt-1 py-2.5 text-body text-foreground">
+                                        Delivering to {lockedCity.name}
                                     </p>
-                                )}
-                            </div>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label htmlFor="cod-city" className="text-meta font-medium text-muted-foreground">
+                                        City *
+                                    </label>
+                                    <select
+                                        id="cod-city"
+                                        name="address-level2"
+                                        autoComplete="address-level2"
+                                        className={inputClassName}
+                                        value={cityKey}
+                                        onChange={(ev) => onCityKeyChange(ev.target.value)}
+                                        onBlur={markTouched("city")}
+                                        aria-invalid={showError("city")}
+                                        aria-describedby={showError("city") ? "cod-city-error" : undefined}
+                                    >
+                                        <option value="" disabled>
+                                            Select your city
+                                        </option>
+                                        {delivery.cities.map((city) => (
+                                            <option key={city.key} value={city.key}>
+                                                {city.name}
+                                            </option>
+                                        ))}
+                                        {delivery.otherCityAllowed && (
+                                            <option value={OTHER_CITY.key}>{OTHER_CITY.name}</option>
+                                        )}
+                                    </select>
+                                    {showError("city") && (
+                                        <p id="cod-city-error" className="mt-1 text-meta text-danger">
+                                            {errors.city}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
                             <div>
                                 <label htmlFor="cod-postal" className="text-meta font-medium text-muted-foreground">

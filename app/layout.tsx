@@ -6,6 +6,8 @@ import Navbar from "@/components/navbar";
 import ModalProvider from "@/providers/modal-provider";
 import ToastProvider from "@/providers/toast-provider";
 import getStore from "@/actions/get-store";
+import getDelivery from "@/actions/get-delivery";
+import DeliveryProvider from "@/providers/delivery-provider";
 
 import WhatsAppFloat from "@/components/ui/whatspp-float";
 import "./globals.css";
@@ -44,20 +46,25 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    // Never throws (falls back), so a missing delivery endpoint can't break pages.
+    const delivery = await getDelivery();
+
     return (
         <html lang="en">
             <body className={`${font.className} min-h-screen flex flex-col`}>
-                <ToastProvider />
-                <ModalProvider />
-                <Navbar />
-                <main className="flex-1">{children}</main>
-                <Footer />
-                <WhatsAppFloat message="Hi! I want to place an order." />
+                <DeliveryProvider value={delivery}>
+                    <ToastProvider />
+                    <ModalProvider />
+                    <Navbar />
+                    <main className="flex-1">{children}</main>
+                    <Footer />
+                    <WhatsAppFloat message="Hi! I want to place an order." />
+                </DeliveryProvider>
             </body>
         </html>
     );

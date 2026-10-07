@@ -9,7 +9,16 @@ import { toast } from "react-hot-toast";
 import Container from "@/components/ui/container";
 import Currency from "@/components/ui/currency";
 import Skeleton from "@/components/ui/skeleton";
+import DeliveryNudge from "@/components/delivery-nudge";
 import useCart from "@/hooks/use-cart";
+import useDelivery from "@/hooks/use-delivery";
+import {
+    addAmounts,
+    deliveryDaysText,
+    deliveryLine,
+    freeDeliveryNudge,
+    itemsSubtotal,
+} from "@/lib/delivery-display";
 import { writeLastOrderConfirmation } from "@/lib/order-confirmation";
 import { CreateOrderPayload } from "@/types";
 
@@ -34,6 +43,9 @@ const CheckoutPage = () => {
 
     const items = useCart((state) => state.items);
     const removeAll = useCart((state) => state.removeAll);
+    const delivery = useDelivery();
+    // A single served city is used automatically (the form shows it as text).
+    const [cityKey, setCityKey] = useState(delivery.lockedCityKey ?? "");
 
     useEffect(() => {
         setIsMounted(true);
@@ -44,10 +56,16 @@ const CheckoutPage = () => {
         [items],
     );
 
-    const totalPrice = useMemo(
-        () => items.reduce((total, item) => total + Number(item.product.price) * item.quantity, 0),
+    // Display only (exact decimal strings): Admin computes the real fee.
+    const subtotal = useMemo(
+        () => itemsSubtotal(items.map((item) => ({ price: item.product.price, quantity: item.quantity }))),
         [items],
     );
+    const line = deliveryLine(delivery, subtotal, cityKey || null);
+    const nudge = freeDeliveryNudge(delivery, subtotal, cityKey || null);
+    const total =
+        line.kind === "free" ? subtotal : line.kind === "fee" ? addAmounts(subtotal, line.fee) : null;
+    const daysText = deliveryDaysText(delivery);
 
     const submitCOD = useCallback(
         async (payload: CreateOrderPayload) => {
@@ -199,6 +217,9 @@ const CheckoutPage = () => {
                         <CODDetailsForm
                             items={orderItems}
                             submitting={submitting}
+                            delivery={delivery}
+                            cityKey={cityKey}
+                            onCityKeyChange={setCityKey}
                             onCancel={() => router.push("/cart")}
                             onSubmit={submitCOD}
                         >
@@ -225,17 +246,51 @@ const CheckoutPage = () => {
                                             </div>
                                             <div className="shrink-0 text-body font-medium text-foreground">
                                                 <Currency
-                                                    value={Number(item.product.price) * item.quantity}
+                                                    value={itemsSubtotal([
+                                                        { price: item.product.price, quantity: item.quantity },
+                                                    ])}
                                                     noDecimals
                                                 />
                                             </div>
                                         </li>
                                     ))}
                                 </ul>
+                                <dl className="mt-4 space-y-3 border-t border-border pt-4 text-body">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <dt className="text-muted-foreground">Subtotal</dt>
+                                        <dd>
+                                            <Currency value={subtotal} className="font-medium" />
+                                        </dd>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-4">
+                                        <dt className="text-muted-foreground">Delivery</dt>
+                                        <dd className="text-right font-medium text-foreground" aria-live="polite">
+                                            {line.kind === "free" ? (
+                                                "Free"
+                                            ) : line.kind === "fee" ? (
+                                                <Currency value={line.fee} className="font-medium" />
+                                            ) : (
+                                                <span className="text-meta text-muted-foreground">
+                                                    {delivery.available && !cityKey
+                                                        ? "Select your city"
+                                                        : "Calculated at checkout"}
+                                                </span>
+                                            )}
+                                        </dd>
+                                    </div>
+                                </dl>
                                 <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-                                    <span className="text-body font-medium text-foreground">Total</span>
-                                    <Currency value={totalPrice} />
+                                    <span className="text-body font-medium text-foreground">
+                                        {total === null ? "Total (before delivery)" : "Total"}
+                                    </span>
+                                    <div aria-live="polite">
+                                        <Currency value={total ?? subtotal} />
+                                    </div>
                                 </div>
+                                {daysText && (
+                                    <p className="mt-3 text-meta text-muted-foreground">{daysText}</p>
+                                )}
+                                <DeliveryNudge nudge={nudge} className="mt-3" />
                             </div>
 
                             {/* Payment Method — read-only/selected state. COD is the

@@ -8,6 +8,8 @@ import Price from "@/components/ui/price";
 import Button from "@/components/ui/button";
 import { Product } from "@/types";
 import useCart from "@/hooks/use-cart";
+import useDelivery from "@/hooks/use-delivery";
+import { deliveryDaysText } from "@/lib/delivery-display";
 
 interface InfoProps {
   data: Product;
@@ -30,7 +32,9 @@ interface InfoProps {
 
 const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
   const cart = useCart();
+  const delivery = useDelivery();
   const [quantity, setQuantity] = useState(1);
+  const daysText = deliveryDaysText(delivery);
 
   const inStock = data.quantity > 0;
 
@@ -133,7 +137,7 @@ const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
       {inStock && (
         <p className="flex items-center gap-x-2 text-meta text-muted-foreground">
           <Truck size={16} aria-hidden="true" />
-          Cash on delivery available
+          {daysText ? `Cash on delivery available · ${daysText}` : "Cash on delivery available"}
         </p>
       )}
     </div>

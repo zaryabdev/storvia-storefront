@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import useDelivery from "@/hooks/use-delivery";
+import { deliveryDaysText, formatRupees } from "@/lib/delivery-display";
 import { formatMoney } from "@/lib/money";
 import { OrderResponse } from "@/types";
 
@@ -31,6 +33,17 @@ export default function OrderSuccessCard({
     order: OrderResponse;
 }) {
     const [copied, setCopied] = useState(false);
+    const daysText = deliveryDaysText(useDelivery());
+
+    // Admin's authoritative breakdown (decimal strings). Older responses
+    // without deliveryFee show only the total, as before.
+    const breakdown =
+        typeof order.deliveryFee === "string" && typeof order.subtotal === "string"
+            ? {
+                  subtotal: formatRupees(order.subtotal),
+                  delivery: /^0*(\.0*)?$/.test(order.deliveryFee) ? "Free" : formatRupees(order.deliveryFee),
+              }
+            : null;
 
     const total = useMemo(() => {
         // Prefer the authoritative server-returned total; only fall back to
@@ -102,10 +115,23 @@ export default function OrderSuccessCard({
                     </div>
 
                     <div className="rounded-control bg-surface-muted p-3">
+                        {breakdown && (
+                            <dl className="mb-2 space-y-1 border-b border-border pb-2 text-meta">
+                                <div className="flex justify-between gap-4">
+                                    <dt className="text-muted-foreground">Subtotal</dt>
+                                    <dd className="text-foreground">{breakdown.subtotal}</dd>
+                                </div>
+                                <div className="flex justify-between gap-4">
+                                    <dt className="text-muted-foreground">Delivery</dt>
+                                    <dd className="text-foreground">{breakdown.delivery}</dd>
+                                </div>
+                            </dl>
+                        )}
                         <div className="text-meta text-muted-foreground">Total</div>
                         <div className="mt-1 text-body font-semibold text-foreground">
-                            {formatMoney(total, { noDecimals: true })}
+                            {typeof order.total === "string" ? formatRupees(order.total) : formatMoney(total, { noDecimals: true })}
                         </div>
+                        {daysText && <p className="mt-2 text-meta text-muted-foreground">{daysText}</p>}
                     </div>
                 </div>
             </div>
