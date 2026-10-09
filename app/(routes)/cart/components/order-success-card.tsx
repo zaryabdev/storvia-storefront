@@ -105,6 +105,15 @@ export default function OrderSuccessCard({
                                 {copied ? "Copied" : "Copy"}
                             </button>
                         </div>
+                        <p className="mt-2 text-meta text-muted-foreground">
+                            Save this number to track your order.
+                        </p>
+                        <Link
+                            href={`/track?order=${encodeURIComponent(order.trackingId)}`}
+                            className="mt-1 inline-flex min-h-[44px] items-center text-meta font-semibold text-foreground underline underline-offset-2 hover:text-muted-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                        >
+                            Track your order
+                        </Link>
                     </div>
 
                     <div className="rounded-control bg-surface-muted p-3">

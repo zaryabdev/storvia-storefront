@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import getStore from "@/actions/get-store";
 
 /**
@@ -19,6 +21,14 @@ const Footer = async () => {
     return (
         <footer className="bg-white border-t">
             <div className="py-10 mx-auto">
+                <p className="mb-3 text-center">
+                    <Link
+                        href="/track"
+                        className="inline-flex min-h-[44px] items-center text-sm text-black underline underline-offset-2 hover:text-muted-foreground"
+                    >
+                        Track your order
+                    </Link>
+                </p>
                 <p className="text-xs text-center text-black">
                     &copy; {year} {name}. All rights reserved.
                 </p>
