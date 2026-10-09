@@ -6,6 +6,9 @@ export interface Product {
     // Display-only "was" price (decimal string). Absent/null/not above `price` = no sale.
     compareAtPrice?: string | null;
     quantity: number;
+    // Admin's ready-made stock message; null/absent = show nothing. Read it
+    // through lib/stock-display.ts (readStockDisplay).
+    stockDisplay?: { kind: "low" | "count"; quantity: number } | null;
     isFeatured: boolean;
     createdAt?: string;
     size: Size;

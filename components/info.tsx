@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Minus, Plus, ShoppingCart, Truck } from "lucide-react";
+import { Minus, Plus, ShoppingCart, TriangleAlert, Truck } from "lucide-react";
 
 import Price from "@/components/ui/price";
 import Button from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Product } from "@/types";
 import useDelivery from "@/hooks/use-delivery";
 import { addToCartAndTrack } from "@/lib/add-to-cart";
 import { deliveryDaysText } from "@/lib/delivery-display";
+import { readStockDisplay } from "@/lib/stock-display";
 
 interface InfoProps {
   data: Product;
@@ -36,6 +37,8 @@ const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
   const daysText = deliveryDaysText(delivery);
 
   const inStock = data.quantity > 0;
+  // Admin decides what to show; only rendered while in stock.
+  const stock = inStock ? readStockDisplay(data.stockDisplay) : null;
 
   const onAddToCart = () => {
     addToCartAndTrack(data, quantity);
@@ -85,9 +88,24 @@ const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
         )}
         <div className="flex items-center gap-x-3">
           <dt className="w-24 shrink-0 text-body font-semibold text-foreground">Availability</dt>
-          <dd>
+          <dd className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {inStock ? (
-              <span className="text-body font-medium text-success">In stock</span>
+              <>
+                {stock?.kind === "count" ? (
+                  <span className="text-body font-medium text-success">{stock.quantity} in stock</span>
+                ) : (
+                  <span className="text-body font-medium text-success">In stock</span>
+                )}
+                {stock?.kind === "low" && (
+                  <>
+                    <span aria-hidden="true" className="text-body text-muted-foreground">·</span>
+                    <span className="inline-flex items-center gap-x-1 text-body font-medium text-danger">
+                      <TriangleAlert size={16} aria-hidden="true" className="shrink-0" />
+                      Only {stock.quantity} left
+                    </span>
+                  </>
+                )}
+              </>
             ) : (
               <span className="text-body font-medium text-danger">Out of stock</span>
             )}
