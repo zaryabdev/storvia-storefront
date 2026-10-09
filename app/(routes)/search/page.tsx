@@ -4,6 +4,7 @@ import getProducts from "@/actions/get-products";
 import Button from "@/components/ui/button";
 import Container from "@/components/ui/container";
 import ProductCard from "@/components/ui/product-card";
+import { SearchTracker } from "@/components/pixel-trackers";
 import { normalizeSearchQuery } from "@/lib/search-query";
 
 export const revalidate = 0;
@@ -26,6 +27,7 @@ const SearchPage: React.FC<SearchPageProps> = async ({ searchParams }) => {
 
   return (
     <div className="bg-background">
+      {query && <SearchTracker key={query} query={query} />}
       <Container>
         <div className="px-4 pb-24 pt-8 sm:px-6 lg:px-8">
           <h1 className="mb-6 text-heading text-foreground">

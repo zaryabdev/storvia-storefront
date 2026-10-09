@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
@@ -20,6 +20,7 @@ import {
     itemsSubtotal,
 } from "@/lib/delivery-display";
 import { writeLastOrderConfirmation } from "@/lib/order-confirmation";
+import { trackInitiateCheckout } from "@/lib/pixels";
 import { CreateOrderPayload } from "@/types";
 
 import CODDetailsForm from "../cart/components/cod-details-form";
@@ -50,6 +51,22 @@ const CheckoutPage = () => {
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    // InitiateCheckout once per visit, once the persisted cart is readable,
+    // and only for a non-empty cart.
+    const checkoutTracked = useRef(false);
+    useEffect(() => {
+        if (!isMounted || checkoutTracked.current) return;
+        checkoutTracked.current = true;
+        trackInitiateCheckout(
+            items.map((item) => ({
+                id: item.product.id,
+                name: item.product.name,
+                price: item.product.price,
+                quantity: item.quantity,
+            })),
+        );
+    }, [isMounted, items]);
 
     const orderItems = useMemo(
         () => items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),

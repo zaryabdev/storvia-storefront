@@ -2,6 +2,8 @@
 
 import React, { useMemo } from "react";
 
+import { trackContact } from "@/lib/pixels";
+
 type WhatsAppFloatProps = {
     message?: string;
 };
@@ -27,6 +29,7 @@ export default function WhatsAppFloat({
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Chat on WhatsApp"
+            onClick={() => trackContact()}
             className="fixed z-50 inline-flex items-center justify-center text-white transition bg-green-500 rounded-full shadow-lg bottom-5 right-5 h-14 w-14 hover:scale-105 active:scale-95"
         >
             <svg

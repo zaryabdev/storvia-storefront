@@ -7,8 +7,8 @@ import Link from "next/link";
 import Button from "@/components/ui/button";
 import Price from "@/components/ui/price";
 import IconButton from "@/components/ui/icon-button";
-import useCart from "@/hooks/use-cart";
 import usePreviewModal from "@/hooks/use-preview-modal";
+import { addToCartAndTrack } from "@/lib/add-to-cart";
 import { getSale } from "@/lib/sale-price";
 import { Product } from "@/types";
 
@@ -32,7 +32,6 @@ interface ProductCardProps {
  */
 const ProductCard: React.FC<ProductCardProps> = ({ data }) => {
     const previewModal = usePreviewModal();
-    const cart = useCart();
 
     const inStock = data.quantity > 0;
     const sale = getSale(data.price, data.compareAtPrice);
@@ -43,7 +42,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ data }) => {
 
     const onAddToCart = () => {
         if (!inStock) return;
-        cart.addItem(data);
+        addToCartAndTrack(data);
     };
 
     return (

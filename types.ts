@@ -128,4 +128,8 @@ export type Store = {
     logoUrl: string | null;
     // Optional: an older Admin without the field omits it.
     faviconUrl?: string | null;
+    // Ad pixels: the id while that integration is active, else null.
+    // Optional: an older Admin without the fields omits them.
+    metaPixelId?: string | null;
+    tiktokPixelId?: string | null;
 };

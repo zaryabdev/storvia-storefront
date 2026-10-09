@@ -6,6 +6,7 @@ import Link from "next/link";
 import Container from "@/components/ui/container";
 import Skeleton from "@/components/ui/skeleton";
 import { readLastOrderConfirmation } from "@/lib/order-confirmation";
+import { trackPurchase } from "@/lib/pixels";
 import { OrderResponse } from "@/types";
 
 import OrderSuccessCard from "../cart/components/order-success-card";
@@ -25,8 +26,12 @@ const OrderConfirmationPage = () => {
     const [order, setOrder] = useState<OrderResponse | null>(null);
 
     useEffect(() => {
-        setOrder(readLastOrderConfirmation());
+        const stored = readLastOrderConfirmation();
+        setOrder(stored);
         setIsMounted(true);
+        // Purchase from Admin's stored response, at most once per order
+        // (remembered by tracking id; a refresh or Back fires nothing).
+        if (stored) trackPurchase(stored);
     }, []);
 
     // Reading sessionStorage must happen client-side after mount (same

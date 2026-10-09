@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import ProductList from '@/components/product-list'
 import Gallery from '@/components/gallery';
 import Info from '@/components/info';
+import { ViewContentTracker } from '@/components/pixel-trackers';
 import getProduct from '@/actions/get-product';
 import getProducts from '@/actions/get-products';
 import Container from '@/components/ui/container';
@@ -48,6 +49,7 @@ const ProductPage: React.FC<ProductPageProps> = async ({
 
   return (
     <div className="bg-background">
+      <ViewContentTracker key={product.id} id={product.id} name={product.name} price={product.price} />
       <Container>
         <div className="flex flex-col gap-y-10 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
           {/* Two-column split lowered to `md` (768px) — the gallery/info

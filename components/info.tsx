@@ -7,8 +7,8 @@ import { Minus, Plus, ShoppingCart, Truck } from "lucide-react";
 import Price from "@/components/ui/price";
 import Button from "@/components/ui/button";
 import { Product } from "@/types";
-import useCart from "@/hooks/use-cart";
 import useDelivery from "@/hooks/use-delivery";
+import { addToCartAndTrack } from "@/lib/add-to-cart";
 import { deliveryDaysText } from "@/lib/delivery-display";
 
 interface InfoProps {
@@ -31,7 +31,6 @@ interface InfoProps {
 };
 
 const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
-  const cart = useCart();
   const delivery = useDelivery();
   const [quantity, setQuantity] = useState(1);
   const daysText = deliveryDaysText(delivery);
@@ -39,7 +38,7 @@ const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
   const inStock = data.quantity > 0;
 
   const onAddToCart = () => {
-    cart.addItem(data, quantity);
+    addToCartAndTrack(data, quantity);
   }
 
   const nameClassName = "text-heading text-foreground";
