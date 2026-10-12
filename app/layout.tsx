@@ -8,6 +8,7 @@ import ToastProvider from "@/providers/toast-provider";
 import getStore from "@/actions/get-store";
 import getDelivery from "@/actions/get-delivery";
 import DeliveryProvider from "@/providers/delivery-provider";
+import BankTransferProvider from "@/providers/bank-transfer-provider";
 import Pixels from "@/components/pixels";
 
 import WhatsAppFloat from "@/components/ui/whatspp-float";
@@ -55,7 +56,7 @@ export default async function RootLayout({
     // Never throws (falls back), so a missing delivery endpoint can't break pages.
     const delivery = await getDelivery();
     // Same deduped getStore() call as Navbar and generateMetadata. A failure
-    // here means no pixels (Navbar still surfaces the real error).
+    // here means no pixels and COD only (Navbar still surfaces the real error).
     const storeId = process.env.NEXT_PUBLIC_STORE_ID;
     const store = storeId ? await getStore(storeId).catch(() => null) : null;
 
@@ -63,16 +64,18 @@ export default async function RootLayout({
         <html lang="en">
             <body className={`${font.className} min-h-screen flex flex-col`}>
                 <DeliveryProvider value={delivery}>
-                    <Pixels
-                        metaPixelId={store?.metaPixelId ?? null}
-                        tiktokPixelId={store?.tiktokPixelId ?? null}
-                    />
-                    <ToastProvider />
-                    <ModalProvider />
-                    <Navbar />
-                    <main className="flex-1">{children}</main>
-                    <Footer />
-                    <WhatsAppFloat message="Hi! I want to place an order." />
+                    <BankTransferProvider value={store?.bankTransferEnabled === true}>
+                        <Pixels
+                            metaPixelId={store?.metaPixelId ?? null}
+                            tiktokPixelId={store?.tiktokPixelId ?? null}
+                        />
+                        <ToastProvider />
+                        <ModalProvider />
+                        <Navbar />
+                        <main className="flex-1">{children}</main>
+                        <Footer />
+                        <WhatsAppFloat message="Hi! I want to place an order." />
+                    </BankTransferProvider>
                 </DeliveryProvider>
             </body>
         </html>

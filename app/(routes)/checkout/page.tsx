@@ -12,6 +12,7 @@ import Skeleton from "@/components/ui/skeleton";
 import DeliveryNudge from "@/components/delivery-nudge";
 import useCart from "@/hooks/use-cart";
 import useDelivery from "@/hooks/use-delivery";
+import useBankTransfer from "@/hooks/use-bank-transfer";
 import {
     addAmounts,
     deliveryDaysText,
@@ -20,18 +21,22 @@ import {
     itemsSubtotal,
 } from "@/lib/delivery-display";
 import { writeLastOrderConfirmation } from "@/lib/order-confirmation";
+import { PAYMENT_TEXT } from "@/lib/payment-guides";
 import { trackInitiateCheckout } from "@/lib/pixels";
-import { CreateOrderPayload } from "@/types";
+import { cn } from "@/lib/utils";
+import { CheckoutPaymentMethod, CreateOrderPayload, OrderResponse } from "@/types";
 
-import CODDetailsForm from "../cart/components/cod-details-form";
+import CODDetailsForm, { CheckoutDetailsPayload } from "../cart/components/cod-details-form";
 
 export const revalidate = 0;
 
 /**
- * Storvia's own internal COD checkout page. This is NOT a restored
- * Stripe/card flow — there is no payment gateway involved anywhere here,
- * only the same Cash-on-Delivery order-creation POST that previously ran
- * inside a Cart modal. See storvia-ai-context (projects/storefront/CONTEXT.md).
+ * Storvia's own internal checkout page. This is NOT a restored Stripe/card
+ * flow — there is no payment gateway involved anywhere here. It posts to
+ * Admin's POST /checkout with "COD", or "BANK_TRANSFER" while the Store offers
+ * bank transfer (the customer then pays the merchant directly, using the
+ * details on the confirmation page). See storvia-ai-context
+ * (projects/storefront/CONTEXT.md).
  */
 const CheckoutPage = () => {
     const [isMounted, setIsMounted] = useState(false);
@@ -45,6 +50,14 @@ const CheckoutPage = () => {
     const items = useCart((state) => state.items);
     const removeAll = useCart((state) => state.removeAll);
     const delivery = useDelivery();
+    // Set when Admin answers "Bank transfer isn't available" (switched off
+    // mid-checkout): the option stays hidden for the rest of this page visit;
+    // a full reload reads the Store GET again.
+    const [bankTransferWithdrawn, setBankTransferWithdrawn] = useState(false);
+    const bankTransferEnabled = useBankTransfer() && !bankTransferWithdrawn;
+    // COD is preselected; the choice exists only while bank transfer is offered.
+    const [paymentMethod, setPaymentMethod] = useState<CheckoutPaymentMethod>("COD");
+    const method: CheckoutPaymentMethod = bankTransferEnabled ? paymentMethod : "COD";
     // A single served city is used automatically (the form shows it as text).
     const [cityKey, setCityKey] = useState(delivery.lockedCityKey ?? "");
 
@@ -84,19 +97,26 @@ const CheckoutPage = () => {
         line.kind === "free" ? subtotal : line.kind === "fee" ? addAmounts(subtotal, line.fee) : null;
     const daysText = deliveryDaysText(delivery);
 
-    const submitCOD = useCallback(
-        async (payload: CreateOrderPayload) => {
+    const submitOrder = useCallback(
+        async (details: CheckoutDetailsPayload) => {
             if (orderItems.length === 0) return;
+
+            const payload: CreateOrderPayload = { ...details, paymentMethod: method };
 
             try {
                 setSubmitting(true);
                 setSubmitError(null);
-                const res = await axios.post(
-                    `${process.env.NEXT_PUBLIC_API_URL}/cod`,
+                const res = await axios.post<OrderResponse>(
+                    `${process.env.NEXT_PUBLIC_API_URL}/checkout`,
                     payload,
                 );
 
-                writeLastOrderConfirmation(res.data);
+                // The confirmation page shows the payment panel from these.
+                writeLastOrderConfirmation({
+                    ...res.data,
+                    paymentMethod: res.data.paymentMethod ?? method,
+                    paymentAccounts: res.data.paymentAccounts ?? null,
+                });
                 removeAll();
                 toast.success("Order placed.");
                 // `replace`, not `push`: once the order is placed and the
@@ -108,8 +128,9 @@ const CheckoutPage = () => {
                 // in history between the confirmation and the cart).
                 router.replace("/order-confirmation");
             } catch (error: any) {
-                // Admin's /cod route returns two distinct error shapes
-                // (verified against storvia-admin/app/api/[storeId]/cod/route.ts):
+                // Admin's /checkout route (same validation as /cod) returns two
+                // distinct error shapes (verified against
+                // storvia-admin/lib/order-create.ts):
                 // a bare string for generic/validation failures, and a JSON
                 // body `{ error, message, items }` specifically for a stock
                 // mismatch (`ORDER_NOT_PLACEABLE`) — `items` lists each
@@ -124,6 +145,13 @@ const CheckoutPage = () => {
 
                 if (typeof data === "string" && data) {
                     msg = data;
+                    // The merchant switched bank transfer off mid-checkout:
+                    // fall back to COD and hide the option; the form keeps
+                    // every value.
+                    if (data === PAYMENT_TEXT.bankUnavailable) {
+                        setPaymentMethod("COD");
+                        setBankTransferWithdrawn(true);
+                    }
                 } else if (data && typeof data.message === "string") {
                     msg = data.message;
                     if (Array.isArray(data.items)) {
@@ -144,7 +172,7 @@ const CheckoutPage = () => {
                 setSubmitting(false);
             }
         },
-        [orderItems, removeAll, router],
+        [orderItems, method, removeAll, router],
     );
 
     // Same genuine hydration boundary as the Cart page (Task 7) — the cart
@@ -238,7 +266,7 @@ const CheckoutPage = () => {
                             cityKey={cityKey}
                             onCityKeyChange={setCityKey}
                             onCancel={() => router.push("/cart")}
-                            onSubmit={submitCOD}
+                            onSubmit={submitOrder}
                         >
                             {/* Order Summary — real cart snapshot only, display-only
                                 and non-authoritative; Admin recalculates from
@@ -310,27 +338,71 @@ const CheckoutPage = () => {
                                 <DeliveryNudge nudge={nudge} className="mt-3" />
                             </div>
 
-                            {/* Payment Method — read-only/selected state. COD is the
-                                only method; this never implies other options exist. */}
-                            <div className="rounded-surface border border-border bg-surface-muted p-6">
-                                <h2 className="text-subheading text-foreground">Payment Method</h2>
-                                <div className="mt-4 flex items-center gap-3 rounded-control border border-primary bg-surface px-4 py-3">
-                                    <span
-                                        aria-hidden="true"
-                                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
-                                    >
-                                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3">
-                                            <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                    </span>
-                                    <div>
-                                        <p className="text-body font-medium text-foreground">Cash on Delivery</p>
-                                        <p className="text-meta text-muted-foreground">
-                                            Pay with cash when your order arrives
-                                        </p>
+                            {bankTransferEnabled ? (
+                                <div className="rounded-surface border border-border bg-surface-muted p-6">
+                                    <fieldset>
+                                        <legend className="text-subheading text-foreground">
+                                            {PAYMENT_TEXT.methodLegend}
+                                        </legend>
+                                        <div className="mt-4 space-y-3">
+                                            {(
+                                                [
+                                                    ["COD", PAYMENT_TEXT.codLabel, PAYMENT_TEXT.codDescription],
+                                                    ["BANK_TRANSFER", PAYMENT_TEXT.bankLabel, PAYMENT_TEXT.bankDescription],
+                                                ] as const
+                                            ).map(([value, label, description]) => (
+                                                <label
+                                                    key={value}
+                                                    className={cn(
+                                                        "flex min-h-[44px] cursor-pointer items-start gap-3 rounded-control border bg-surface px-4 py-3",
+                                                        method === value ? "border-primary" : "border-border",
+                                                    )}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="payment-method"
+                                                        value={value}
+                                                        checked={method === value}
+                                                        onChange={() => setPaymentMethod(value)}
+                                                        className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
+                                                    />
+                                                    <span className="min-w-0">
+                                                        <span className="block text-body font-medium text-foreground">
+                                                            {label}
+                                                        </span>
+                                                        <span className="block text-meta text-muted-foreground">
+                                                            {description}
+                                                        </span>
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            ) : (
+                                // Payment Method — read-only/selected state. Bank transfer
+                                // is off (or was withdrawn by Admin's 400), so COD is the
+                                // only method; this never implies other options exist.
+                                <div className="rounded-surface border border-border bg-surface-muted p-6">
+                                    <h2 className="text-subheading text-foreground">Payment Method</h2>
+                                    <div className="mt-4 flex items-center gap-3 rounded-control border border-primary bg-surface px-4 py-3">
+                                        <span
+                                            aria-hidden="true"
+                                            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
+                                        >
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3">
+                                                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                        </span>
+                                        <div>
+                                            <p className="text-body font-medium text-foreground">Cash on Delivery</p>
+                                            <p className="text-meta text-muted-foreground">
+                                                Pay with cash when your order arrives
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </CODDetailsForm>
                     </div>
                 </div>

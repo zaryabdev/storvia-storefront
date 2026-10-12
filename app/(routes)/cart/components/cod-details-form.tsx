@@ -7,6 +7,9 @@ import { PAKISTANI_MOBILE_MESSAGE, isPakistaniMobile } from "@/lib/phone";
 import type { CreateOrderPayload } from "@/types";
 import { useMemo, useState } from "react";
 
+/** The checkout body without the payment method (the page adds it). */
+export type CheckoutDetailsPayload = Omit<CreateOrderPayload, "paymentMethod">;
+
 type FormValues = {
     name: string;
     phone: string;
@@ -35,7 +38,7 @@ export default function CODDetailsForm({
     onCityKeyChange: (key: string) => void;
     submitting: boolean;
     onCancel: () => void;
-    onSubmit: (payload: CreateOrderPayload) => Promise<void>;
+    onSubmit: (payload: CheckoutDetailsPayload) => Promise<void>;
     /**
      * Rendered inside the `<form>`, after the delivery fields and before
      * the action buttons — used by the checkout page to show Order Summary
@@ -58,7 +61,7 @@ export default function CODDetailsForm({
 
     const errors = useMemo(() => {
         const e: Record<string, string> = {};
-        // Same rules and messages as Admin's /cod route (lib/phone.ts is
+        // Same rules and messages as Admin's /checkout and /cod routes (lib/phone.ts is
         // identical in both repos). Postal code, email, line 2 and notes
         // are optional.
         if (!vals.name.trim()) e.name = "Name is required";
@@ -104,9 +107,8 @@ export default function CODDetailsForm({
             return;
         }
 
-        const payload: CreateOrderPayload = {
+        const payload: CheckoutDetailsPayload = {
             items,
-            paymentMethod: "COD",
             customer: {
                 name: vals.name.trim(),
                 phone: vals.phone.trim(),

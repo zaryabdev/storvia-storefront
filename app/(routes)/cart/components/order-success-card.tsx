@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import PaymentPanel from "@/components/payment-panel";
 import useDelivery from "@/hooks/use-delivery";
 import { deliveryDaysText, formatRupees } from "@/lib/delivery-display";
 import { formatMoney } from "@/lib/money";
+import { PAYMENT_TEXT } from "@/lib/payment-guides";
 import { OrderResponse } from "@/types";
 
 function normalizeColorHex(hex?: string) {
@@ -26,6 +28,10 @@ function normalizeColorHex(hex?: string) {
  * store, line items) — nothing is invented, and `order.status` is rendered
  * verbatim as returned by Admin rather than relabeled to a specific word
  * like "Confirmed" that the actual order lifecycle may not use.
+ *
+ * A BANK_TRANSFER order also gets the "Complete your payment" panel with the
+ * Store's accounts from the checkout response. COD (and any other method)
+ * shows no panel.
  */
 export default function OrderSuccessCard({
     order,
@@ -83,8 +89,8 @@ export default function OrderSuccessCard({
                         </p>
                     </div>
 
-                    <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-meta text-muted-foreground">
-                        {order.paymentMethod}
+                    <span className="inline-flex shrink-0 items-center rounded-full bg-surface-muted px-3 py-1 text-meta text-muted-foreground">
+                        {order.paymentMethod === "BANK_TRANSFER" ? PAYMENT_TEXT.trackBank : order.paymentMethod}
                     </span>
                 </div>
 
@@ -144,6 +150,16 @@ export default function OrderSuccessCard({
                     </div>
                 </div>
             </div>
+
+            {order.paymentMethod === "BANK_TRANSFER" && (
+                <div className="border-b border-border p-4 sm:p-6">
+                    <PaymentPanel
+                        accounts={order.paymentAccounts ?? []}
+                        total={typeof order.total === "string" ? order.total : String(total)}
+                        trackingId={order.trackingId}
+                    />
+                </div>
+            )}
 
             {/* Items */}
             <div className="p-6">

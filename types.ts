@@ -69,11 +69,38 @@ export interface Color {
     value: string;
 }
 
+// STRIPE is an inert legacy value; only COD and BANK_TRANSFER are placed.
+// Any other value shows no payment panel.
+export type PaymentMethod = "COD" | "BANK_TRANSFER" | "STRIPE";
+
+// What a checkout may send (Admin's POST /api/{storeId}/checkout).
+export type CheckoutPaymentMethod = "COD" | "BANK_TRANSFER";
+
+export type PaymentAccountType = "BANK" | "JAZZCASH" | "EASYPAISA";
+
+// Admin's public payment-account shape (no ids, in the merchant's order;
+// `iban` normalised). Read it through lib/payment-accounts.ts
+// (readPaymentAccounts), which skips accounts that can't be shown.
+export interface PaymentAccount {
+    type: PaymentAccountType;
+    accountTitle: string;
+    bankName: string | null;
+    iban: string | null;
+    accountNumber: string | null;
+    raastId: string | null;
+    walletNumber: string | null;
+    tillId: string | null;
+    qrImageUrl: string | null;
+    note: string | null;
+}
+
 export type OrderResponse = {
     orderId: string;
     trackingId: string;
     status: "DRAFT" | "CONFIRMED" | "DELIVERED" | "CANCELED" | string;
-    paymentMethod: "COD" | "STRIPE" | string;
+    paymentMethod: PaymentMethod;
+    /** BANK_TRANSFER: the Store's accounts at checkout; else null. Older entries lack it. */
+    paymentAccounts?: PaymentAccount[] | null;
     totalPrice: number;
     /** Decimal strings from Admin. Optional: older Admin responses lack deliveryFee. */
     subtotal?: string | null;
@@ -107,7 +134,7 @@ export type OrderResponse = {
 
 export type CreateOrderPayload = {
     items: Array<{ productId: string; quantity: number }>;
-    paymentMethod: "COD";
+    paymentMethod: CheckoutPaymentMethod;
     customer?: {
         name?: string;
         phone?: string;
@@ -135,4 +162,7 @@ export type Store = {
     // Optional: an older Admin without the fields omits them.
     metaPixelId?: string | null;
     tiktokPixelId?: string | null;
+    // Bank transfer is available (enabled and at least one account).
+    // Optional: an older Admin without the field omits it (= COD only).
+    bankTransferEnabled?: boolean;
 };

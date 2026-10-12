@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import PaymentPanel from "@/components/payment-panel";
 import Button from "@/components/ui/button";
 import { formatRupees } from "@/lib/delivery-display";
 import {
@@ -11,6 +12,8 @@ import {
     STEPS_DONE,
     TrackedOrder,
     formatPakistanDate,
+    paymentLine,
+    showPaymentPanel,
     trackOrder,
 } from "@/lib/track-order";
 
@@ -75,6 +78,7 @@ export default function TrackForm({ initialOrder }: { initialOrder: string }) {
     };
 
     const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+    const payment = result ? paymentLine(result) : null;
 
     return (
         <>
@@ -194,6 +198,7 @@ export default function TrackForm({ initialOrder }: { initialOrder: string }) {
                                     {result.deliveryDays && ` · usually ${result.deliveryDays} days after confirmation`}
                                 </p>
                             )}
+                            {payment && <p>Payment: {payment}</p>}
                         </div>
 
                         <ul className="mt-4 divide-y divide-border border-t border-border">
@@ -233,6 +238,16 @@ export default function TrackForm({ initialOrder }: { initialOrder: string }) {
                                 <dd className="text-foreground">{formatRupees(result.total)}</dd>
                             </div>
                         </dl>
+
+                        {showPaymentPanel(result) && (
+                            <div className="mt-6 border-t border-border pt-6">
+                                <PaymentPanel
+                                    accounts={result.paymentAccounts}
+                                    total={result.total}
+                                    trackingId={result.trackingId}
+                                />
+                            </div>
+                        )}
 
                         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                             {whatsapp && (

@@ -2,7 +2,7 @@
 
 ## What this repo is
 
-The public customer storefront of Storvia. One deployment serves one Store, chosen by `NEXT_PUBLIC_STORE_ID`. Guest Cash-on-Delivery checkout only. It has no database and no customer auth: it is a pure consumer of `storvia-admin`'s public API.
+The public customer storefront of Storvia. One deployment serves one Store, chosen by `NEXT_PUBLIC_STORE_ID`. Guest checkout only: Cash on delivery, plus bank transfer / JazzCash / Easypaisa when the Store enables it (see DECISIONS.md → Bank transfer and mobile wallet payments). It has no database and no customer auth: it is a pure consumer of `storvia-admin`'s public API.
 
 ## Project context lives in `../storvia-ai-context`
 

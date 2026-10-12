@@ -8,7 +8,9 @@ import Currency from "@/components/ui/currency";
 import DeliveryNudge from "@/components/delivery-nudge";
 import useCart from "@/hooks/use-cart";
 import useDelivery from "@/hooks/use-delivery";
+import useBankTransfer from "@/hooks/use-bank-transfer";
 import { addAmounts, deliveryLine, freeDeliveryNudge, itemsSubtotal } from "@/lib/delivery-display";
+import { PAYMENT_TEXT } from "@/lib/payment-guides";
 
 /**
  * Purely presentational + navigational — no order submission happens here.
@@ -22,6 +24,7 @@ import { addAmounts, deliveryLine, freeDeliveryNudge, itemsSubtotal } from "@/li
 const Summary = () => {
     const items = useCart((state) => state.items);
     const delivery = useDelivery();
+    const bankTransferEnabled = useBankTransfer();
     const router = useRouter();
 
     const subtotal = useMemo(
@@ -79,7 +82,7 @@ const Summary = () => {
 
             {items.length > 0 && (
                 <p className="mt-3 text-center text-meta text-muted-foreground">
-                    Pay with cash on delivery
+                    {bankTransferEnabled ? PAYMENT_TEXT.cartBoth : PAYMENT_TEXT.cartCodOnly}
                 </p>
             )}
         </div>

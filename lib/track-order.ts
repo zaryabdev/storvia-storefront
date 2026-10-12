@@ -1,6 +1,8 @@
 // Guest order tracking: Admin's public POST /api/{storeId}/track-order.
 // Display only; money stays decimal strings (formatted with formatRupees).
 
+import { PAYMENT_TEXT } from "./payment-guides";
+
 export type TrackedStatus = "DRAFT" | "CONFIRMED" | "DELIVERED" | "CANCELED";
 
 export interface TrackedOrder {
@@ -22,6 +24,11 @@ export interface TrackedOrder {
     currency: string;
     city: string;
     deliveryDays: string;
+    /** Since bank transfer; null when an older Admin omits them. */
+    paymentMethod: string | null;
+    isPaid: boolean | null;
+    /** An array only for an unpaid, not canceled BANK_TRANSFER order (may be []); else null. */
+    paymentAccounts: unknown[] | null;
 }
 
 export type TrackResult =
@@ -79,6 +86,9 @@ function readOrder(body: unknown): TrackedOrder | null {
         currency: isString(order.currency) ? order.currency : "PKR",
         city: isString(order.city) ? order.city : "",
         deliveryDays: isString(order.deliveryDays) ? order.deliveryDays : "",
+        paymentMethod: isString(order.paymentMethod) ? order.paymentMethod : null,
+        isPaid: typeof order.isPaid === "boolean" ? order.isPaid : null,
+        paymentAccounts: Array.isArray(order.paymentAccounts) ? order.paymentAccounts : null,
     };
 }
 
@@ -140,3 +150,22 @@ export const STEPS_DONE: Record<TrackedStatus, number> = {
     DELIVERED: 3,
     CANCELED: 0,
 };
+
+/**
+ * The "Payment" line: "Cash on delivery", "Bank transfer · Awaiting payment"
+ * or "Bank transfer · Payment received"; null (no line) for an older Admin,
+ * STRIPE or an unknown method. A canceled unpaid bank transfer says only
+ * "Bank transfer", so nobody is asked to pay for a canceled order.
+ */
+export function paymentLine(order: Pick<TrackedOrder, "paymentMethod" | "isPaid" | "status">): string | null {
+    if (order.paymentMethod === "COD") return PAYMENT_TEXT.trackCod;
+    if (order.paymentMethod !== "BANK_TRANSFER") return null;
+    if (order.isPaid === true) return PAYMENT_TEXT.trackReceived;
+    if (order.isPaid === false && order.status !== "CANCELED") return PAYMENT_TEXT.trackAwaiting;
+
+    return PAYMENT_TEXT.trackBank;
+}
+
+/** Show the payment panel: a BANK_TRANSFER order for which Admin returned an accounts array. */
+export const showPaymentPanel = (order: Pick<TrackedOrder, "paymentMethod" | "paymentAccounts">) =>
+    order.paymentMethod === "BANK_TRANSFER" && Array.isArray(order.paymentAccounts);
