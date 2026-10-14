@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { Urbanist } from "next/font/google";
 
+import AnnouncementBar from "@/components/announcement-bar";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import ModalProvider from "@/providers/modal-provider";
@@ -71,6 +72,7 @@ export default async function RootLayout({
                         />
                         <ToastProvider />
                         <ModalProvider />
+                        <AnnouncementBar announcement={store?.announcement} />
                         <Navbar />
                         <main className="flex-1">{children}</main>
                         <Footer />

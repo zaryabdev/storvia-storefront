@@ -165,4 +165,14 @@ export type Store = {
     // Bank transfer is available (enabled and at least one account).
     // Optional: an older Admin without the field omits it (= COD only).
     bankTransferEnabled?: boolean;
+    // Announcement bar text (only while Admin has it on), and the merchant's
+    // social profile URLs. Optional: an older Admin without the fields omits
+    // them. Read them through components/announcement-bar.tsx and
+    // lib/social-links.ts, never directly.
+    announcement?: string | null;
+    socialLinks?: {
+        instagram?: string | null;
+        tiktok?: string | null;
+        facebook?: string | null;
+    } | null;
 };

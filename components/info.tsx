@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Minus, Plus, ShoppingCart, TriangleAlert, Truck } from "lucide-react";
+import { MessageCircle, Minus, Plus, ShoppingCart, TriangleAlert, Truck } from "lucide-react";
 
 import Price from "@/components/ui/price";
 import Button from "@/components/ui/button";
@@ -11,6 +11,9 @@ import useDelivery from "@/hooks/use-delivery";
 import { addToCartAndTrack } from "@/lib/add-to-cart";
 import { deliveryDaysText } from "@/lib/delivery-display";
 import { readStockDisplay } from "@/lib/stock-display";
+import { buildOrderWhatsAppMessage, whatsappDigits } from "@/lib/order-on-whatsapp";
+import { whatsappLink } from "@/lib/payment-accounts";
+import { trackContact } from "@/lib/pixels";
 
 interface InfoProps {
   data: Product;
@@ -36,6 +39,13 @@ const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
   const [quantity, setQuantity] = useState(1);
   const daysText = deliveryDaysText(delivery);
 
+  // The shop link in the WhatsApp message: this product's page, also from Quick
+  // View. The origin is only known in the browser, so the button appears after
+  // mount (no server/client mismatch).
+  const [origin, setOrigin] = useState<string | null>(null);
+  useEffect(() => setOrigin(window.location.origin), []);
+  const whatsappNumber = whatsappDigits(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER);
+
   const inStock = data.quantity > 0;
   // Admin decides what to show; only rendered while in stock.
   const stock = inStock ? readStockDisplay(data.stockDisplay) : null;
@@ -43,6 +53,21 @@ const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
   const onAddToCart = () => {
     addToCartAndTrack(data, quantity);
   }
+
+  const orderOnWhatsAppHref =
+    inStock && whatsappNumber && origin
+      ? whatsappLink(
+          whatsappNumber,
+          buildOrderWhatsAppMessage({
+            name: data.name,
+            size: data.size?.value,
+            color: data.color?.name,
+            price: data.price,
+            quantity,
+            url: `${origin}/product/${data.id}`,
+          }),
+        )
+      : null;
 
   const nameClassName = "text-heading text-foreground";
 
@@ -150,6 +175,20 @@ const Info: React.FC<InfoProps> = ({ data, titleAs = "h1", onNavigate }) => {
         {inStock ? "Add to Cart" : "Out of stock"}
         <ShoppingCart size={20} aria-hidden="true" />
       </Button>
+
+      {orderOnWhatsAppHref && (
+        <a
+          href={orderOnWhatsAppHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Order on WhatsApp (opens in a new tab)"
+          onClick={() => trackContact()}
+          className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-body font-semibold text-foreground transition hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:w-auto"
+        >
+          Order on WhatsApp
+          <MessageCircle size={20} aria-hidden="true" />
+        </a>
+      )}
 
       {inStock && (
         <p className="flex items-center gap-x-2 text-meta text-muted-foreground">
