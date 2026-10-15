@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      "tailwindui.com",
-      "res.cloudinary.com"
-    ]
+    loader: "custom",
+    loaderFile: "./lib/image-loader.ts",
+    deviceSizes: [640, 828, 1080, 1600],
+    imageSizes: [96, 128, 256, 384],
   }
 }
 
