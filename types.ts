@@ -175,4 +175,12 @@ export type Store = {
         tiktok?: string | null;
         facebook?: string | null;
     } | null;
+    // Which store pages are live (booleans only, never text). Optional: an
+    // older Admin omits it. Read through lib/store-pages.ts, never directly.
+    pages?: {
+        about?: boolean;
+        contact?: boolean;
+        returns?: boolean;
+        faq?: boolean;
+    } | null;
 };

@@ -1,7 +1,9 @@
 import Link from "next/link";
 
 import getStore from "@/actions/get-store";
+import LinkRow from "@/components/link-row";
 import { readSocialLinks } from "@/lib/social-links";
+import { readLivePages } from "@/lib/store-pages";
 
 /**
  * Server Component (matches Navbar) so it can read the real Store name
@@ -19,32 +21,19 @@ const Footer = async () => {
     const store = storeId ? await getStore(storeId).catch(() => null) : null;
     const name = store?.name ?? "Store";
     const socialLinks = readSocialLinks(store);
+    const livePages = readLivePages(store);
 
     return (
         <footer className="bg-white border-t">
             <div className="py-10 mx-auto">
-                {socialLinks.length > 0 && (
-                    <ul className="mb-1 flex flex-wrap items-center justify-center gap-x-1 px-4">
-                        {socialLinks.map((link, index) => (
-                            <li key={link.key} className="flex items-center">
-                                {index > 0 && (
-                                    <span aria-hidden="true" className="text-sm text-black">
-                                        ·
-                                    </span>
-                                )}
-                                <a
-                                    href={link.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    aria-label={`${link.label} (opens in a new tab)`}
-                                    className="inline-flex min-h-[44px] items-center px-3 text-sm text-black underline underline-offset-2 hover:text-muted-foreground"
-                                >
-                                    {link.label}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                <LinkRow
+                    className="mb-1"
+                    items={livePages.map(({ kind, title, href }) => ({ key: kind, label: title, href }))}
+                />
+                <LinkRow
+                    className="mb-1"
+                    items={socialLinks.map((link) => ({ ...link, external: true }))}
+                />
                 <p className="mb-3 text-center">
                     <Link
                         href="/track"
