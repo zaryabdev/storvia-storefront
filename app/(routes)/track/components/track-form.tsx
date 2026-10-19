@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 
 import PaymentPanel from "@/components/payment-panel";
 import Button from "@/components/ui/button";
+import CopyButton from "@/components/ui/copy-button";
 import { formatRupees } from "@/lib/delivery-display";
 import {
+    COURIER_TEXT,
     STATUS_TEXT,
     STEPS_DONE,
     TrackedOrder,
@@ -200,6 +202,22 @@ export default function TrackForm({ initialOrder }: { initialOrder: string }) {
                             )}
                             {payment && <p>Payment: {payment}</p>}
                         </div>
+
+                        {result.courier && (
+                            <div className="mt-3 space-y-1 text-meta text-muted-foreground">
+                                <p className="break-words">
+                                    {COURIER_TEXT.shippedWith} <span dir="auto">{result.courier.name}</span>
+                                </p>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                    <p className="min-w-0 break-words">
+                                        {COURIER_TEXT.trackingNumber}{" "}
+                                        <span className="font-medium text-foreground">{result.courier.trackingNumber}</span>
+                                    </p>
+                                    <CopyButton value={result.courier.trackingNumber} what={COURIER_TEXT.copyWhat} />
+                                </div>
+                                <p>{COURIER_TEXT.helper}</p>
+                            </div>
+                        )}
 
                         <ul className="mt-4 divide-y divide-border border-t border-border">
                             {result.items.map((item, index) => {

@@ -29,6 +29,41 @@ export interface TrackedOrder {
     isPaid: boolean | null;
     /** An array only for an unpaid, not canceled BANK_TRANSFER order (may be []); else null. */
     paymentAccounts: unknown[] | null;
+    /** Since courier tracking; only for CONFIRMED / DELIVERED, else (or older Admin, malformed) null. */
+    courier: TrackedCourier | null;
+}
+
+export interface TrackedCourier {
+    name: string;
+    trackingNumber: string;
+}
+
+/** Wording of the courier lines on /track (rules: DECISIONS.md → Courier and tracking number). */
+export const COURIER_TEXT = {
+    shippedWith: "Shipped with",
+    trackingNumber: "Tracking number:",
+    /** Names the number for CopyButton: "Copy tracking number" / "tracking number copied". */
+    copyWhat: "tracking number",
+    helper: "Track your parcel on the courier's website or app.",
+};
+
+const COURIER_NAME_MAX = 60;
+const TRACKING_NUMBER_PATTERN = /^[A-Za-z0-9 -]{4,40}$/;
+
+/** Lenient: anything not exactly { name, trackingNumber } in range counts as no courier. */
+function readCourier(value: unknown, status: TrackedStatus): TrackedCourier | null {
+    if (status !== "CONFIRMED" && status !== "DELIVERED") return null;
+    if (!value || typeof value !== "object") return null;
+
+    const { name, trackingNumber } = value as Record<string, unknown>;
+    if (!isString(name) || !isString(trackingNumber)) return null;
+
+    const trimmedName = name.trim();
+    const trimmedNumber = trackingNumber.trim();
+    if (!trimmedName || Array.from(trimmedName).length > COURIER_NAME_MAX) return null;
+    if (!TRACKING_NUMBER_PATTERN.test(trimmedNumber)) return null;
+
+    return { name: trimmedName, trackingNumber: trimmedNumber };
 }
 
 export type TrackResult =
@@ -89,6 +124,7 @@ function readOrder(body: unknown): TrackedOrder | null {
         paymentMethod: isString(order.paymentMethod) ? order.paymentMethod : null,
         isPaid: typeof order.isPaid === "boolean" ? order.isPaid : null,
         paymentAccounts: Array.isArray(order.paymentAccounts) ? order.paymentAccounts : null,
+        courier: readCourier(order.courier, order.status as TrackedStatus),
     };
 }
 
