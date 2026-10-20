@@ -9,6 +9,9 @@ export interface Product {
     // Admin's ready-made stock message; null/absent = show nothing. Read it
     // through lib/stock-display.ts (readStockDisplay).
     stockDisplay?: { kind: "low" | "count"; quantity: number } | null;
+    // Plain text; only on the single-product read (not the list). Read it
+    // through lib/product-description.ts (readProductDescription).
+    description?: string | null;
     isFeatured: boolean;
     createdAt?: string;
     size: Size;

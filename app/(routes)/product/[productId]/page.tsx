@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import ProductList from '@/components/product-list'
@@ -7,6 +8,8 @@ import { ViewContentTracker } from '@/components/pixel-trackers';
 import getProduct from '@/actions/get-product';
 import getProducts from '@/actions/get-products';
 import Container from '@/components/ui/container';
+import { Text } from '@/components/store-page';
+import { productMetaDescription, readProductDescription } from '@/lib/product-description';
 
 export const revalidate = 0;
 
@@ -20,6 +23,16 @@ interface ProductPageProps {
 // it so it can't grow unbounded in a large category. 8 gives exactly two
 // full rows at the 4-column desktop grid width used below.
 const RELATED_PRODUCTS_LIMIT = 8;
+
+// Only sets the meta description, and only when the product has a description;
+// otherwise (or if the read fails) the layout's metadata stays exactly as it
+// was. getProduct is the same fetch the page makes, so Next dedupes it.
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const product = await getProduct(params.productId).catch(() => null);
+  const description = readProductDescription(product?.description);
+
+  return description ? { description: productMetaDescription(description) } : {};
+}
 
 const ProductPage: React.FC<ProductPageProps> = async ({
   params
@@ -47,6 +60,9 @@ const ProductPage: React.FC<ProductPageProps> = async ({
     .filter((item) => item.id !== product.id)
     .slice(0, RELATED_PRODUCTS_LIMIT);
 
+  // Shown on this page only (Info is shared with Quick View).
+  const description = readProductDescription(product.description);
+
   return (
     <div className="bg-background">
       <ViewContentTracker key={product.id} id={product.id} name={product.name} price={product.price} />
@@ -60,6 +76,12 @@ const ProductPage: React.FC<ProductPageProps> = async ({
             <Gallery images={product.images} productName={product.name} priority />
             <div className="mt-8 md:mt-0">
               <Info data={product} />
+              {description && (
+                <section className="mt-8 min-w-0 border-t border-border pt-6">
+                  <h2 className="mb-3 text-heading text-foreground">Description</h2>
+                  <Text text={description} />
+                </section>
+              )}
             </div>
           </div>
 

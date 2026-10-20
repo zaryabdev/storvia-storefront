@@ -38,7 +38,7 @@ export async function storePageMetadata(kind: StorePageKind): Promise<Metadata> 
 
 // Plain text only: no HTML, Markdown or auto-linking. Blank lines split
 // paragraphs; single line breaks are kept; dir="auto" so Urdu reads right to left.
-const Text = ({ text }: { text: string }) => (
+export const Text = ({ text }: { text: string }) => (
     <div className="space-y-4">
         {splitParagraphs(text).map((paragraph, index) => (
             <p
